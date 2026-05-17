@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh:*)",
+      "Bash(rg:*)",
+      "Bash(fd:*)",
+      "Bash(bat:*)",
+      "Bash(jq:*)",
+      "Bash(sg:*)",
+      "Bash(fzf:*)",
+      "Bash(tree-sitter:*)",
+      "Bash(git:*)",
+      "mcp__aide__*"
+    ]
+  }
+}
