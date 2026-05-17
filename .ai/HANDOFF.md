@@ -203,3 +203,16 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 | Next Role | none |
 
 ---
+
+### T-005 — implement(commit_task) — 2026-05-17T20:35:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | po (via direct PowerShell) |
+| Summary | Committed T-005 todo platform entity after review approval. Task marked done on board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/TASKS.md`, `custom_components/endgame_grocery/todo.py`, `tests/test_todo.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/todo.py` PASS |
+| Commit | `feat(integration): add Endgame Grocery todo platform` (commit 9ea926d) |
+| Next Role | none |
+
+---
