@@ -56,3 +56,43 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 | Next Role | none |
 
 ---
+
+### T-002 — implement — 2026-05-17T17:49:11Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the async Endgame Grocery API client with domain error mapping, test coverage, and matching README updates. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `README.md`, `custom_components/endgame_grocery/api.py`, `tests/test_api.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `feat(integration): add Endgame Grocery API client` |
+| Next Role | review |
+
+---
+
+### T-002 — review — 2026-05-17T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-002 API client; all 6 methods present, full exception hierarchy correct, all error mappings verified, session injection confirmed. All acceptance criteria met. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` → 11 PASS; `python -m py_compile custom_components/endgame_grocery/api.py` → PASS |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement (commit_task) |
+
+---
+
+### T-002 — implement(commit_task) — 2026-05-17T18:04:06Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-002 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/api.py`, `tests/test_api.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/api.py` PASS |
+| Commit | `feat(integration): add Endgame Grocery API client` |
+| Next Role | none |
+
+---
