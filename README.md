@@ -13,6 +13,8 @@ Current scaffold contents:
 - `custom_components/endgame_grocery/manifest.json` with Home Assistant integration metadata
 - `custom_components/endgame_grocery/const.py` for shared integration constants
 - `custom_components/endgame_grocery/api.py` for the async Endgame Grocery HTTP client and domain-specific error mapping
+- `custom_components/endgame_grocery/config_flow.py` for UI-based setup and live credential validation
+- `custom_components/endgame_grocery/strings.json` and `translations/en.json` for Home Assistant config-flow labels and errors
 - Stub `custom_components/endgame_grocery/__init__.py` to establish the package before coordinator setup is implemented
 
 Basic validation:

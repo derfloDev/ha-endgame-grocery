@@ -84,6 +84,33 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-003 — implement — 2026-05-17T18:08:07Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the Endgame Grocery config flow, English translations, config-flow tests, and matching README updates. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `README.md`, `custom_components/endgame_grocery/config_flow.py`, `custom_components/endgame_grocery/strings.json`, `custom_components/endgame_grocery/translations/en.json`, `tests/test_config_flow.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `feat(integration): add Endgame Grocery config flow` |
+| Next Role | review |
+
+---
+
+### T-003 — review — 2026-05-17T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-003 config flow; all acceptance criteria met — error mappings, duplicate-abort, title fallback, and translations verified. No findings. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` → 19 PASS; `python -m py_compile custom_components/endgame_grocery/config_flow.py` → PASS |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement (commit_task) |
+
+---
+
 ### T-002 — implement(commit_task) — 2026-05-17T18:04:06Z
 
 | Field | Value |
