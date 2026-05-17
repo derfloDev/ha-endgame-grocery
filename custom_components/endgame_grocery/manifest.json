@@ -1,0 +1,11 @@
+{
+  "domain": "endgame_grocery",
+  "name": "Endgame Grocery",
+  "version": "0.1.0",
+  "codeowners": ["@DerFloDev"],
+  "config_flow": true,
+  "documentation": "https://github.com/DerFloDev/ha-endgame-grocery",
+  "homeassistant": "2026.5.0",
+  "iot_class": "cloud_polling",
+  "requirements": []
+}

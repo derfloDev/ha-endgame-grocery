@@ -9,7 +9,8 @@
   - `git add <new-file>`
 
 ## Validation Commands
-- Define project validation commands here when you add them for this repository.
+- `python -m unittest discover -s tests -p "test_*.py"` — repository validation tests
+- `python -m py_compile custom_components/endgame_grocery/*.py` — syntax-check integration modules
 
 ## Language Rules
 - Use English for code comments, log/output messages, `README.md`.
