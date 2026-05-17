@@ -124,6 +124,33 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-004 — implement — 2026-05-17T18:21:33Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Replaced the integration stub with config-entry setup and a polling coordinator, added coordinator tests, and updated the README. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `README.md`, `custom_components/endgame_grocery/__init__.py`, `tests/test_init.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `feat(integration): add Endgame Grocery coordinator setup` |
+| Next Role | review |
+
+---
+
+### T-004 — review — 2026-05-17T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-004 coordinator setup; all acceptance criteria met — entry setup, first refresh, runtime_data, platform forwarding, unload, data shape, and both error mappings verified. No findings. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` → 24 PASS; `python -m py_compile custom_components/endgame_grocery/__init__.py` → PASS |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement (commit_task) |
+
+---
+
 ### T-003 — implement(commit_task) — 2026-05-17T18:18:00Z
 
 | Field | Value |
