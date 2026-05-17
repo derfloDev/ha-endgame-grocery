@@ -163,3 +163,16 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 | Next Role | none |
 
 ---
+
+### T-004 — implement(commit_task) — 2026-05-17T18:25:26Z
+
+| Field | Value |
+|-------|-------|
+| Agent | po (via direct PowerShell) |
+| Summary | Committed T-004 coordinator setup after review approval. Task marked done on board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/__init__.py`, `tests/test_init.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/__init__.py` PASS |
+| Commit | `feat(integration): add Endgame Grocery coordinator setup` (commit e406df7) |
+| Next Role | none |
+
+---
