@@ -2,11 +2,28 @@
 
 ## Overview
 
-TODO: Describe this project.
+Home Assistant custom integration scaffold for the Endgame Grocery app.
+The repository is structured for HACS installation and Home Assistant config-entry support, with the `todo` platform planned as the primary entity surface.
 
 ## Getting Started
 
-TODO: Add setup instructions.
+Current scaffold contents:
+
+- Root `hacs.json` for HACS repository metadata
+- `custom_components/endgame_grocery/manifest.json` with Home Assistant integration metadata
+- `custom_components/endgame_grocery/const.py` for shared integration constants
+- `custom_components/endgame_grocery/api.py` for the async Endgame Grocery HTTP client and domain-specific error mapping
+- `custom_components/endgame_grocery/config_flow.py` for UI-based setup and live credential validation
+- `custom_components/endgame_grocery/strings.json` and `translations/en.json` for Home Assistant config-flow labels and errors
+- `custom_components/endgame_grocery/__init__.py` for config-entry setup, coordinator refresh, and platform forwarding
+- `custom_components/endgame_grocery/todo.py` for one Home Assistant todo entity per Endgame Grocery list
+
+Basic validation:
+
+```bash
+python -m unittest discover -s tests -p "test_*.py"
+python -m py_compile custom_components/endgame_grocery/*.py
+```
 
 ## AI Workflow
 

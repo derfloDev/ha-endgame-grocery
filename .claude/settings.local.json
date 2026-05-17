@@ -10,7 +10,8 @@
       "Bash(fzf:*)",
       "Bash(tree-sitter:*)",
       "Bash(git:*)",
-      "mcp__aide__*"
+      "mcp__aide__*",
+      "Bash(python *)"
     ]
   }
 }

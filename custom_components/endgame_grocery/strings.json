@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Endgame Grocery",
+        "data": {
+          "base_url": "Base URL",
+          "api_key": "API Key"
+        },
+        "data_description": {
+          "base_url": "The base URL of your Endgame Grocery server, e.g. https://grocery.example.com",
+          "api_key": "Your personal API key from the Endgame Grocery settings page"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the server. Check the URL and try again.",
+      "invalid_auth": "Invalid API key. Generate a new one in the Endgame Grocery settings.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This Endgame Grocery server is already configured."
+    }
+  }
+}
