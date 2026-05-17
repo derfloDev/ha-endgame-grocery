@@ -164,6 +164,33 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-005 — implement — 2026-05-17T18:28:03Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the Endgame Grocery todo platform entity layer, todo-entity tests, and matching README updates. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `README.md`, `custom_components/endgame_grocery/todo.py`, `tests/test_todo.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `feat(integration): add Endgame Grocery todo platform` |
+| Next Role | review |
+
+---
+
+### T-005 — review — 2026-05-17T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-005 todo platform; all acceptance criteria met — entity setup, identity metadata, status mapping, create/update/delete mutations, sequential operations, missing-item guard, and refresh behavior all verified. No findings. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` → 32 PASS; `python -m py_compile custom_components/endgame_grocery/todo.py` → PASS |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement (commit_task) |
+
+---
+
 ### T-004 — implement(commit_task) — 2026-05-17T18:25:26Z
 
 | Field | Value |

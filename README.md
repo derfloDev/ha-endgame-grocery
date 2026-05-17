@@ -16,6 +16,7 @@ Current scaffold contents:
 - `custom_components/endgame_grocery/config_flow.py` for UI-based setup and live credential validation
 - `custom_components/endgame_grocery/strings.json` and `translations/en.json` for Home Assistant config-flow labels and errors
 - `custom_components/endgame_grocery/__init__.py` for config-entry setup, coordinator refresh, and platform forwarding
+- `custom_components/endgame_grocery/todo.py` for one Home Assistant todo entity per Endgame Grocery list
 
 Basic validation:
 
