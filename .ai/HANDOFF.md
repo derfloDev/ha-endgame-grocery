@@ -217,6 +217,19 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-008 — review — 2026-05-18T06:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-008 README overhaul and logo; all sections present, badges correct, AI Workflow removed, icon.png valid PNG byte-copy of source logo, all 36 tests pass. No required fixes. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
 ### T-007 — review — 2026-05-18T05:45:00Z
 
 | Field | Value |
@@ -300,6 +313,32 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 | Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py` |
 | Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; local archive contract check PASS |
 | Commit | `ci(workflows): automate tagged GitHub releases` |
+| Next Role | none |
+
+---
+
+### T-008 — implement — 2026-05-18T15:04:40Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Rewrote the README for end users, removed the internal AI workflow section, added README/icon contract coverage, and copied the packaged integration icon into the component. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `README.md`, `custom_components/endgame_grocery/images/icon.png`, `tests/test_readme_assets.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; PNG signature check PASS |
+| Commit | `docs(readme): publish end-user setup guide and icon` |
+| Next Role | review |
+
+---
+
+### T-008 — implement(commit_task) — 2026-05-18T15:22:11Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-008 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/images/icon.png`, `tests/test_readme_assets.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; PNG signature check PASS |
+| Commit | `docs(readme): publish end-user setup guide and icon` |
 | Next Role | none |
 
 ---

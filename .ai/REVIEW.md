@@ -113,3 +113,43 @@ None.
 ### Required Fixes
 
 None.
+
+---
+
+## T-008 — README Overhaul & Logo
+
+**Reviewer:** claude  
+**Date:** 2026-05-18T06:00:00Z  
+**Verdict:** PASS
+
+### Findings
+
+| # | Severity | Location | Description | Required Fix |
+|---|---|---|---|---|
+| 1 | nit | `README.md` line 5 | Plan specifies em-dash `—` in the `<h1>` title ("Endgame Grocery — Home Assistant Integration") but implementation uses a hyphen-minus `-`. Cosmetic only. | No |
+| 2 | nit | `custom_components/endgame_grocery/images/icon.png` | File is 5.8 MB — large for an integration icon. The plan specifies a byte-copy of `assets/endgame_grocery_logo.png`, so the implementer correctly followed the spec. Optimising the icon is out of scope for this task. | No |
+
+### Verification
+
+**Steps performed:**
+
+1. Re-read `.ai/TASKS.md` (T-008 acceptance criteria) and `.ai/PLAN.md` (Phase 3 spec) before starting.
+2. Inspected `README.md` against the plan spec:
+   - Logo `<img src="assets/endgame_grocery_logo.png">` in centered header ✅
+   - CI badge URL: `DerFloDev/ha-endgame-grocery/actions/workflows/ci.yml/badge.svg` ✅
+   - HACS Open-in badge URL: `my.home-assistant.io/redirect/hacs_repository/…` ✅
+   - All 10 required sections present: Overview, Features, Prerequisites, Installation via HACS, Manual Installation, Configuration, Usage, Troubleshooting, Release and versioning, License ✅
+   - `## AI Workflow` section absent ✅
+   - Troubleshooting table contains all 3 planned rows (`invalid_auth`, `cannot_connect`, new lists) ✅
+   - Release & versioning includes tag convention (`git tag v0.2.0 && git push origin v0.2.0`) ✅
+3. Verified `custom_components/endgame_grocery/images/icon.png` exists ✅
+4. Ran PNG magic-byte check: `b'\x89PNG\r\n\x1a\n'` confirmed, size 5,828,953 bytes ✅
+5. Reviewed `tests/test_readme_assets.py`: two tests covering all required sections/badges and byte-identity of icon vs source logo ✅
+6. Ran `python -m unittest discover -s tests -p "test_*.py" -v` → **36 tests, 0 failures, 0 errors** ✅
+7. Ran `python -m py_compile` on all 5 integration modules → **PASS** ✅
+
+**Risks:** Icon file is large (5.8 MB); no functional risk, but HACS/HA will download it on each install. Could be optimised in a follow-up task.
+
+### Required Fixes
+
+None.
