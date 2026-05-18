@@ -23,7 +23,10 @@ class TestHacsScaffold(unittest.TestCase):
         self.assertTrue(hacs_path.exists())
 
         data = json.loads(hacs_path.read_text(encoding="utf-8"))
-        self.assertEqual(data, {"name": "Endgame Grocery", "render_readme": True})
+        self.assertEqual(data["name"], "Endgame Grocery")
+        self.assertTrue(data["render_readme"])
+        self.assertTrue(data["zip_release"])
+        self.assertEqual(data["filename"], "endgame_grocery.zip")
 
     def test_manifest_json(self) -> None:
         """The integration manifest contains the planned HA metadata."""
