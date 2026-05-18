@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp version into manifest.json
+        run: |
+          python - <<'EOF'
+          import json
+          from pathlib import Path
+
+          manifest_path = Path("custom_components/endgame_grocery/manifest.json")
+          data = json.loads(manifest_path.read_text(encoding="utf-8"))
+          data["version"] = "${{ steps.version.outputs.VERSION }}"
+          manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+          EOF
+
+      - name: Build ZIP archive
+        run: |
+          cd custom_components
+          zip -r ../endgame_grocery.zip endgame_grocery/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: endgame_grocery.zip
+          generate_release_notes: true

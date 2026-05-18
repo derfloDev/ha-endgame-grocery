@@ -1,153 +1,80 @@
-# ha-endgame-grocery
+<p align="center">
+  <img src="assets/endgame_grocery_logo.png" alt="Endgame Grocery" width="150">
+</p>
+
+<h1 align="center">Endgame Grocery - Home Assistant Integration</h1>
+
+<p align="center">
+  <a href="https://github.com/DerFloDev/ha-endgame-grocery/actions/workflows/ci.yml">
+    <img src="https://github.com/DerFloDev/ha-endgame-grocery/actions/workflows/ci.yml/badge.svg" alt="CI">
+  </a>
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=DerFloDev&repository=ha-endgame-grocery&category=integration">
+    <img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS">
+  </a>
+</p>
 
 ## Overview
 
-Home Assistant custom integration scaffold for the Endgame Grocery app.
-The repository is structured for HACS installation and Home Assistant config-entry support, with the `todo` platform planned as the primary entity surface.
+Endgame Grocery connects an Endgame Grocery server to Home Assistant and exposes each grocery list as a `todo` entity. That gives you a native way to view, update, and automate shopping lists from dashboards, assistants, and scripts.
 
-## Getting Started
+## Features
 
-Current scaffold contents:
+- One Home Assistant `todo` entity per Endgame Grocery list
+- Create, rename, complete, reopen, and delete grocery items from Home Assistant
+- 60-second background refresh to keep Home Assistant in sync with the server
+- Config flow setup with live API credential validation
+- Works with the Lovelace Todo card and Home Assistant automations
 
-- Root `hacs.json` for HACS repository metadata
-- `custom_components/endgame_grocery/manifest.json` with Home Assistant integration metadata
-- `custom_components/endgame_grocery/const.py` for shared integration constants
-- `custom_components/endgame_grocery/api.py` for the async Endgame Grocery HTTP client and domain-specific error mapping
-- `custom_components/endgame_grocery/config_flow.py` for UI-based setup and live credential validation
-- `custom_components/endgame_grocery/strings.json` and `translations/en.json` for Home Assistant config-flow labels and errors
-- `custom_components/endgame_grocery/__init__.py` for config-entry setup, coordinator refresh, and platform forwarding
-- `custom_components/endgame_grocery/todo.py` for one Home Assistant todo entity per Endgame Grocery list
+## Prerequisites
 
-Basic validation:
+- An Endgame Grocery server that is reachable from Home Assistant
+- An API key from the Endgame Grocery settings page
+- Home Assistant `2026.5.0` or newer
+- HACS installed if you want the HACS installation path
 
-```bash
-python -m unittest discover -s tests -p "test_*.py"
-python -m py_compile custom_components/endgame_grocery/*.py
-```
+## Installation via HACS
 
-## AI Workflow
+1. Open HACS in Home Assistant.
+2. Go to `Integrations`, then open the three-dot menu and choose `Custom repositories`.
+3. Add `https://github.com/DerFloDev/ha-endgame-grocery` as a repository with category `Integration`.
+4. Search for `Endgame Grocery` in HACS and install it.
+5. Restart Home Assistant.
 
-This project includes the persistent planner/implementer/reviewer workflow with file-based coordination, plus the PO orchestration layer.
-Manual and auto are two runtime modes for the same scaffold: they use the same generated files, task board, and review gate. Fewer role sessions means less coordination overhead and lower token cost.
+## Manual Installation
 
-### Runtime modes
+1. Download the latest `endgame_grocery.zip` asset from the GitHub Releases page.
+2. Extract the `endgame_grocery/` folder into `<config>/custom_components/`.
+3. Restart Home Assistant.
 
-- Manual mode: start the planner, implementer, and reviewer in separate terminals, then drive each session yourself with the documented text commands.
-- Auto mode: run `aide po` to start the PO session, which uses MCP tools to coordinate the post-planning implementer/reviewer workflow for you.
+## Configuration
 
-### Concepts
+1. In Home Assistant, open `Settings -> Devices & Services`.
+2. Select `Add Integration` and search for `Endgame Grocery`.
+3. Enter the base URL for your server, for example `https://grocery.example.com`.
+4. Enter your API key.
+5. Submit the form. Home Assistant creates one `todo` entity for each grocery list.
 
-**Cycle** — a unit of work on a feature branch. One cycle = one branch = one PR.
+## Usage
 
-**Roles and file ownership:**
+After setup, each Endgame Grocery list appears as its own Home Assistant `todo` entity named after the list. You can use those entities in the Todo dashboard card, service calls, automations, or scripts to create items, rename them, change completion state, and delete them.
 
-| Role | Reads | Writes |
-|------|-------|--------|
-| PO | `.ai/TASKS.md`, `.ai/PLAN.md`, `.ai/REVIEW.md`, `.ai/prompts/po.md` | MCP session commands via `aide po` |
-| Planner | `ROADMAP.md` | `.ai/PLAN.md`, `.ai/TASKS.md` |
-| Implementer | `.ai/PLAN.md`, `.ai/REVIEW.md` | source code, `.ai/TASKS.md` |
-| Reviewer | `.ai/PLAN.md`, commits | `.ai/REVIEW.md`, `.ai/TASKS.md` |
+## Troubleshooting
 
-**Status flow:**
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `invalid_auth` during setup | Wrong or expired API key | Generate a new API key in Endgame Grocery settings and try again |
+| `cannot_connect` during setup | Wrong base URL or the server is unreachable | Check the URL, TLS settings, and network reachability from Home Assistant |
+| New lists do not appear after they are created on the server | Todo entities are created when the integration is set up | Reload the integration from Devices & Services |
 
-```text
-in_planning → ready_for_implement → in_implementation → ready_for_review → in_review → ready_to_commit → done
-                                          ↑                                     |
-                                          └──── changes_requested ◄─────────────┘
-```
+## Release and versioning
 
-### Start a new development cycle
-
-```bash
-# Edit ROADMAP.md with your goals first, then:
-aide cycle start feature/<scope>
-```
-
-### Start persistent role sessions (manual mode)
+Contributors publish a release by pushing a semantic version tag. The release workflow stamps the tag version into the packaged `manifest.json`, builds `endgame_grocery.zip`, and attaches that archive to the GitHub Release with generated notes.
 
 ```bash
-aide plan          # terminal 1
-aide implement     # terminal 2
-aide review        # terminal 3
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
-Launch each role once, then keep those sessions open for the rest of the cycle.
+## License
 
-Role launchers read default agent/model settings from `.ai/config.json`.
-To override, pass the agent first, then any CLI flags.
-Example: `aide review claude --model sonnet`
-Claude starts interactively by default, and the Codex launcher uses interactive `codex` mode so the session stays open for role commands.
-
-### Start the PO orchestrator (auto mode)
-
-```bash
-aide po
-```
-
-The PO session drives the post-planning task board flow through the `aide` MCP server.
-By default, `aide po` launches Claude with `--model haiku`, and `aide po codex` launches Codex with `-m gpt-5.4-mini`. `.ai/config.json` can override those defaults, and an explicit CLI `--model` or `-m` flag takes precedence.
-If no tasks are in `ready_for_implement` or later, run the planner first.
-The MCP server appends structured debug logs to `.ai/mcp-server.log`, and the scaffold gitignore excludes that file.
-
-### Drive work inside the existing sessions
-
-```text
-planner> start_plan
-implementer> next_task T-001
-reviewer> next_task T-001
-implementer> commit_task T-001
-implementer> rework_task T-001
-aide cycle end 0.7.0
-```
-
-Cross-platform CLI equivalents:
-`aide cycle end [VERSION]` closes the cycle outside the persistent role session, and `aide pr [--dry-run]` creates or updates the branch PR.
-
-**Planner commands:**
-
-Before `start_plan`, freeform conversation with the planner is the roadmap-refinement phase. Use it to sharpen scope, acceptance criteria, constraints, and trade-offs directly in `ROADMAP.md`. `start_plan` is the explicit handoff into formal planning.
-
-| Command | Description |
-|---------|-------------|
-| `start_plan` | Read `ROADMAP.md`, write `.ai/PLAN.md` and `.ai/TASKS.md` |
-| `rework_plan [TASK_ID]` | Revisit the plan when scope or approach changes |
-
-**Implementer commands:**
-
-| Command | Description |
-|---------|-------------|
-| `next_task [TASK_ID]` | Pick up the next `ready_for_implement` task |
-| `commit_task [TASK_ID]` | Turn a `ready_to_commit` task into one clean final commit, including task-specific `.ai/` artifacts |
-| `rework_task [TASK_ID]` | Address `changes_requested` findings from `.ai/REVIEW.md` |
-| `aide cycle end [VERSION]` | Close the cycle after all tasks reach `done`, committing remaining `.ai/` artifacts with a `Release-As:` footer |
-| `status_cycle [TASK_ID]` | Show task status and recommended next action |
-
-**Reviewer commands:**
-
-| Command | Description |
-|---------|-------------|
-| `next_task [TASK_ID]` | Pick up the next `ready_for_review` task and run review plus verification |
-| `status_cycle [TASK_ID]` | Show task status and recommended next action |
-
-### File map
-
-| File | Purpose | Tracked |
-|------|---------|---------|
-| `.ai/PLAN.md` | Current plan | yes |
-| `.ai/TASKS.md` | Task board with status | yes |
-| `.ai/prompts/po.md` | PO orchestration prompt for auto mode | yes |
-| `.ai/REVIEW.md` | Review findings | yes (tracked cycle log) |
-| `.ai/HANDOFF.md` | Runtime handoff log | yes (tracked cycle log) |
-| `.ai/config.json` | Per-role launch defaults | yes |
-| `ROADMAP.md` | Cycle goals (edit before planning) | yes |
-| `AGENTS.md` | Project-specific and workflow-managed agent rules | yes |
-| `CLAUDE.md` | Agent instruction entry point (`@AGENTS.md`) | yes |
-| `aide po` | Launch the PO orchestration session | yes |
-
-### Create a PR
-
-```bash
-aide pr
-```
-
-Full workflow details and session recovery rules are in `AGENTS.md`.
+MIT. The maintainer can replace this section later if the repository adopts a different license file.

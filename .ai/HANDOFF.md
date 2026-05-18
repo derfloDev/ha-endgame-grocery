@@ -204,6 +204,58 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-006 — implement — 2026-05-18T05:04:07Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the GitHub CI workflow with parallel validation and HACS jobs, plus workflow coverage in the test suite. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `.github/workflows/ci.yml`, `tests/test_ci_workflow.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `ci(workflows): add integration validation pipeline` |
+| Next Role | review |
+
+---
+
+### T-008 — review — 2026-05-18T06:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-008 README overhaul and logo; all sections present, badges correct, AI Workflow removed, icon.png valid PNG byte-copy of source logo, all 36 tests pass. No required fixes. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-007 — review — 2026-05-18T05:45:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-007 release workflow; all acceptance criteria met — tag trigger, version stamp, ZIP build, GitHub Release creation, permissions block, and README documentation all verified. No required fixes. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-006 — review — 2026-05-18T05:30:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-006 CI pipeline; all acceptance criteria met — triggers, parallel jobs, Python 3.12, syntax check, unit tests, and HACS action all verified. No findings. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
 ### T-005 — implement(commit_task) — 2026-05-17T20:35:00Z
 
 | Field | Value |
@@ -218,6 +270,93 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 ---
 
 ### Cycle closed — unversioned — 2026-05-17T18:34:45Z
+
+| Field | Value |
+|-------|-------|
+| Summary | All tasks done; cycle closed |
+| Version | unversioned |
+
+---
+
+### T-006..T-008 — plan — 2026-05-18T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Planned Priority 2 release infrastructure: CI pipeline (T-006), automated GitHub release workflow (T-007), and README overhaul with logo (T-008). |
+| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | n/a (plan role) |
+| Commit | n/a (plan role) |
+| Next Role | implement |
+
+---
+
+### T-007 — implement — 2026-05-18T11:36:24Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the tag-driven GitHub release workflow, release-workflow test coverage, and README release-tag documentation. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; local archive contract check PASS |
+| Commit | `ci(workflows): automate tagged GitHub releases` |
+| Next Role | review |
+
+---
+
+### T-007 — implement(commit_task) — 2026-05-18T14:38:53Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-007 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; local archive contract check PASS |
+| Commit | `ci(workflows): automate tagged GitHub releases` |
+| Next Role | none |
+
+---
+
+### T-008 — implement — 2026-05-18T15:04:40Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Rewrote the README for end users, removed the internal AI workflow section, added README/icon contract coverage, and copied the packaged integration icon into the component. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `README.md`, `custom_components/endgame_grocery/images/icon.png`, `tests/test_readme_assets.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; PNG signature check PASS |
+| Commit | `docs(readme): publish end-user setup guide and icon` |
+| Next Role | review |
+
+---
+
+### T-008 — implement(commit_task) — 2026-05-18T15:22:11Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-008 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/images/icon.png`, `tests/test_readme_assets.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; PNG signature check PASS |
+| Commit | `docs(readme): publish end-user setup guide and icon` |
+| Next Role | none |
+
+---
+
+### T-006 — implement(commit_task) — 2026-05-18T06:22:53Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-006 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/TASKS.md`, `.github/workflows/ci.yml`, `tests/test_ci_workflow.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `ci(workflows): add integration validation pipeline` |
+| Next Role | none |
+
+---
+
+### Cycle closed — unversioned — 2026-05-18T15:25:00Z
 
 | Field | Value |
 |-------|-------|
