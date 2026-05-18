@@ -1,0 +1,31 @@
+name: Resize Brand Icons
+
+on:
+  workflow_dispatch:
+
+jobs:
+  resize:
+    name: Resize brand icons and commit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resize to 256×256 (icon.png) and 512×512 (icon@2x.png)
+        run: |
+          convert assets/endgame_grocery_logo.png \
+            -resize 256x256 \
+            custom_components/endgame_grocery/brand/icon.png
+          convert assets/endgame_grocery_logo.png \
+            -resize 512x512 \
+            custom_components/endgame_grocery/brand/icon@2x.png
+
+      - name: Commit resized icons
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add custom_components/endgame_grocery/brand/
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore(brand): resize icons to 256x256 and 512x512 for HA 2026.3+ brand API"
+          git push
