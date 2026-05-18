@@ -14,8 +14,14 @@ Thumbs.db
 .idea/
 *.iml
 
+# Python
+__pycache__/
+*.py[cod]
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
 # AI workflow runtime logs
 .ai/mcp-server.log
 .ai/sessions.json
-
-
