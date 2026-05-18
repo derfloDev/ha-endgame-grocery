@@ -25,6 +25,16 @@ python -m unittest discover -s tests -p "test_*.py"
 python -m py_compile custom_components/endgame_grocery/*.py
 ```
 
+## Releases
+
+GitHub Actions publishes a release artifact when you push a semantic version tag such as `v0.1.0`.
+The workflow stamps that version into the packaged `manifest.json`, builds `endgame_grocery.zip`, and attaches it to the GitHub Release with generated release notes.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## AI Workflow
 
 This project includes the persistent planner/implementer/reviewer workflow with file-based coordination, plus the PO orchestration layer.

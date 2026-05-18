@@ -217,6 +217,19 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-007 — review — 2026-05-18T05:45:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-007 release workflow; all acceptance criteria met — tag trigger, version stamp, ZIP build, GitHub Release creation, permissions block, and README documentation all verified. No required fixes. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
 ### T-006 — review — 2026-05-18T05:30:00Z
 
 | Field | Value |
@@ -262,6 +275,32 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 | Validation | n/a (plan role) |
 | Commit | n/a (plan role) |
 | Next Role | implement |
+
+---
+
+### T-007 — implement — 2026-05-18T11:36:24Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the tag-driven GitHub release workflow, release-workflow test coverage, and README release-tag documentation. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; local archive contract check PASS |
+| Commit | `ci(workflows): automate tagged GitHub releases` |
+| Next Role | review |
+
+---
+
+### T-007 — implement(commit_task) — 2026-05-18T14:38:53Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-007 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via explicit file list; local archive contract check PASS |
+| Commit | `ci(workflows): automate tagged GitHub releases` |
+| Next Role | none |
 
 ---
 

@@ -73,3 +73,43 @@ None — all acceptance criteria met, no issues found.
 ### Required Fixes
 
 None.
+
+---
+
+## T-007 — Release Workflow
+
+**Reviewer:** claude  
+**Date:** 2026-05-18T05:45:00Z  
+**Verdict:** PASS
+
+### Findings
+
+| # | Severity | Location | Description | Required Fix |
+|---|---|---|---|---|
+| 1 | nit | `release.yml` line 39 | `softprops/action-gh-release@v2` uses a floating major-version tag; a SHA pin would be more supply-chain secure, but this matches community convention and the plan spec. | No |
+
+### Verification
+
+**Steps performed:**
+
+1. Re-read `.ai/TASKS.md` (T-007 acceptance criteria) and `.ai/PLAN.md` (Phase 2 spec) before starting.
+2. Inspected `.github/workflows/release.yml` against the plan spec:
+   - Trigger: `push` on tags matching `v*.*.*` ✅
+   - `permissions: contents: write` — not in plan but required for `softprops/action-gh-release@v2` to create releases; correct addition ✅
+   - `release` job on ubuntu-latest ✅
+   - `actions/checkout@v4` ✅
+   - Version extraction: `id: version`, `${GITHUB_REF_NAME#v}` written to `$GITHUB_OUTPUT` ✅
+   - Manifest stamp: inline Python heredoc; implementation adds `encoding="utf-8"` to `read_text()` / `write_text()` — improvement over plan ✅
+   - `data["version"] = "${{ steps.version.outputs.VERSION }}"` ✅
+   - ZIP build: `cd custom_components && zip -r ../endgame_grocery.zip endgame_grocery/` ✅
+   - Release action: `softprops/action-gh-release@v2`, `files: endgame_grocery.zip`, `generate_release_notes: true` ✅
+3. Verified `README.md` updated with a "Releases" section covering the workflow purpose and tag convention (`git tag v0.1.0 && git push origin v0.1.0`) ✅
+4. Reviewed `tests/test_release_workflow.py`: validates file presence and all key YAML elements (trigger pattern, permissions, version extraction, manifest stamping, zip command, release action, files, generate_release_notes) ✅
+5. Ran `python -m unittest discover -s tests -p "test_*.py" -v` → **34 tests, 0 failures, 0 errors** ✅
+6. Ran `python -m py_compile` on all 5 integration modules → **PASS** ✅
+
+**Risks:** Minor supply-chain risk from floating action references (`softprops/action-gh-release@v2`); acceptable at this project scale and consistent with the plan.
+
+### Required Fixes
+
+None.
