@@ -1,4 +1,6 @@
 {
   "name": "Endgame Grocery",
-  "render_readme": true
+  "render_readme": true,
+  "zip_release": true,
+  "filename": "endgame_grocery.zip"
 }
