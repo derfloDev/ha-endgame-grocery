@@ -355,3 +355,12 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 | Next Role | none |
 
 ---
+
+### Cycle closed — unversioned — 2026-05-18T15:25:00Z
+
+| Field | Value |
+|-------|-------|
+| Summary | All tasks done; cycle closed |
+| Version | unversioned |
+
+---
