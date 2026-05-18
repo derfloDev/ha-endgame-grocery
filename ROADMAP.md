@@ -2,6 +2,37 @@
 
 Goal: Build and publish a production-ready Home Assistant custom integration for the Endgame Grocery app, installable via HACS.
 
+## Priority 2 — Release Infrastructure & Documentation
+
+Objective: Make the integration production-ready for public HACS consumption with proper versioning, CI validation, and user-facing documentation.
+
+### Planned outcomes
+
+- **CI workflow** (`.github/workflows/ci.yml`): runs on every PR and push to `main`; steps are Python syntax check (`py_compile`), unit tests (`unittest`), and HACS Action validation (`hacs-action`).
+- **Release workflow** (`.github/workflows/release.yml`): triggers on `v*.*.*` tag push; creates a GitHub Release with a ZIP archive of `custom_components/endgame_grocery/` so HACS can offer version selection.
+- **Integration icon** (`custom_components/endgame_grocery/images/icon.png`): copy of the logo from `assets/endgame_grocery_logo.png`; used by HA and HACS to display the integration icon.
+- **README overhaul** (`README.md`): complete rewrite with logo, badges (CI status, HACS install), integration description, prerequisites, HACS installation steps, manual installation steps, configuration guide, and troubleshooting section. AI Workflow section is removed (development tooling is not relevant to end users).
+- **ROADMAP update** (this file): document the release process and tag convention.
+
+### Acceptance criteria
+
+- CI workflow runs and passes on the feature branch (no errors in test/syntax/HACS steps).
+- Pushing a `v*` tag to `main` triggers the release workflow and creates a GitHub Release with a ZIP asset.
+- README renders correctly on GitHub: logo visible, HACS badge links to the repo, install steps are accurate.
+- `custom_components/endgame_grocery/images/icon.png` exists and is a valid PNG.
+- HACS shows the integration icon when browsing the custom repository.
+
+### Resolved decisions
+
+| Decision | Resolution |
+|---|---|
+| CI scope | Unit tests + syntax check + hacs-action |
+| Release process | Automated via GitHub Actions on `v*.*.*` tag push |
+| Logo in HACS | Copy to `custom_components/endgame_grocery/images/icon.png` + show in README |
+| AI Workflow docs in README | Removed — end-user README only |
+
+---
+
 ## Priority 1 — Core Integration (HACS-ready, todo platform)
 
 Objective: Deliver a fully functional HA custom component under `custom_components/endgame_grocery/` that surfaces every accessible Endgame Grocery list as a `todo` entity in Home Assistant.

@@ -204,6 +204,32 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 
 ---
 
+### T-006 — implement — 2026-05-18T05:04:07Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added the GitHub CI workflow with parallel validation and HACS jobs, plus workflow coverage in the test suite. |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `.github/workflows/ci.yml`, `tests/test_ci_workflow.py` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `ci(workflows): add integration validation pipeline` |
+| Next Role | review |
+
+---
+
+### T-006 — review — 2026-05-18T05:30:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-006 CI pipeline; all acceptance criteria met — triggers, parallel jobs, Python 3.12, syntax check, unit tests, and HACS action all verified. No findings. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
 ### T-005 — implement(commit_task) — 2026-05-17T20:35:00Z
 
 | Field | Value |
@@ -223,5 +249,31 @@ Append-only role handoff log. Each role adds one entry when its step is complete
 |-------|-------|
 | Summary | All tasks done; cycle closed |
 | Version | unversioned |
+
+---
+
+### T-006..T-008 — plan — 2026-05-18T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Planned Priority 2 release infrastructure: CI pipeline (T-006), automated GitHub release workflow (T-007), and README overhaul with logo (T-008). |
+| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | n/a (plan role) |
+| Commit | n/a (plan role) |
+| Next Role | implement |
+
+---
+
+### T-006 — implement(commit_task) — 2026-05-18T06:22:53Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-006 for commit after review approval and closed the task on the board. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/TASKS.md`, `.github/workflows/ci.yml`, `tests/test_ci_workflow.py` |
+| Validation | Review-approved validations: `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile custom_components/endgame_grocery/*.py` PASS via PowerShell file expansion |
+| Commit | `ci(workflows): add integration validation pipeline` |
+| Next Role | none |
 
 ---

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: >
+          python -m py_compile
+          custom_components/endgame_grocery/api.py
+          custom_components/endgame_grocery/config_flow.py
+          custom_components/endgame_grocery/const.py
+          custom_components/endgame_grocery/__init__.py
+          custom_components/endgame_grocery/todo.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hacs/action@main
+        with:
+          category: integration
