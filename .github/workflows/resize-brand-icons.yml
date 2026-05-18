@@ -12,14 +12,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Pillow
+        run: pip install Pillow
+
       - name: Resize to 256×256 (icon.png) and 512×512 (icon@2x.png)
         run: |
-          convert assets/endgame_grocery_logo.png \
-            -resize 256x256 \
-            custom_components/endgame_grocery/brand/icon.png
-          convert assets/endgame_grocery_logo.png \
-            -resize 512x512 \
-            custom_components/endgame_grocery/brand/icon@2x.png
+          python3 - <<'EOF'
+          from PIL import Image
+          from pathlib import Path
+
+          src = Path("assets/endgame_grocery_logo.png")
+          brand = Path("custom_components/endgame_grocery/brand")
+          brand.mkdir(parents=True, exist_ok=True)
+
+          img = Image.open(src).convert("RGBA")
+          img.resize((256, 256), Image.LANCZOS).save(brand / "icon.png", optimize=True)
+          img.resize((512, 512), Image.LANCZOS).save(brand / "icon@2x.png", optimize=True)
+          print("Icons written:", list(brand.iterdir()))
+          EOF
 
       - name: Commit resized icons
         run: |
