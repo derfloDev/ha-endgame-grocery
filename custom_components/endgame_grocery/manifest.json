@@ -1,8 +1,10 @@
 {
   "domain": "endgame_grocery",
   "name": "Endgame Grocery",
-  "version": "0.1.0",
-  "codeowners": ["@DerFloDev"],
+  "version": "0.1.3",
+  "codeowners": [
+    "@DerFloDev"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/DerFloDev/ha-endgame-grocery",
   "issue_tracker": "https://github.com/DerFloDev/ha-endgame-grocery/issues",
