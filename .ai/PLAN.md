@@ -195,6 +195,64 @@ Add the following step at the end of the `release` job, after `Create GitHub Rel
 - T-001: `fix(release): correct ZIP structure so HACS installs integration at the right path`
 - T-002: `test(scaffold): accept semver manifest versions in scaffold validation`
 - T-003: `feat(release): commit stamped manifest version back to main after each release`
+- T-004: `fix(release): fetch origin/main before back-merge to avoid push rejection`
+
+---
+
+### T-004 — fix back-merge push rejection
+
+**Root cause**
+
+The release workflow is triggered by a tag push and checks out the repository at
+the tag ref (detached HEAD). After the tag is pushed, unrelated commits can land on
+`main` (e.g. a PR merge). When the workflow later runs `git push origin HEAD:main`,
+Git rejects it because `origin/main` is ahead of the local detached HEAD.
+
+Observed error from the v0.1.2 run (26147018103):
+```
+! [rejected]  HEAD -> main (fetch first)
+error: failed to push some refs to '...'
+hint: Updates were rejected because the remote contains work that you do not have locally.
+```
+
+**Fix**
+
+Replace the "Commit version bump back to main" step so it:
+1. Fetches the current `origin/main`
+2. Creates a local branch based on `origin/main`
+3. Re-applies the version stamp to `manifest.json` on that branch
+4. Commits and pushes — now guaranteed to be a fast-forward
+
+```yaml
+- name: Commit version bump back to main
+  run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+    git fetch origin main
+    git checkout -B chore/version-bump origin/main
+    python - <<'EOF'
+    import json
+    from pathlib import Path
+    manifest_path = Path("custom_components/endgame_grocery/manifest.json")
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    data["version"] = "${{ steps.version.outputs.VERSION }}"
+    manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    EOF
+    git add custom_components/endgame_grocery/manifest.json
+    git commit -m "chore(release): bump manifest version to ${{ steps.version.outputs.VERSION }} [skip ci]"
+    git push origin HEAD:main
+```
+
+The version stamp is re-applied on this branch (the working tree reflects
+`origin/main` after the checkout, not the tag). The push is now a fast-forward
+onto the latest `main`.
+
+**Files to change**
+
+| File | Change |
+|------|--------|
+| `.github/workflows/release.yml` | Replace "Commit version bump back to main" step with the fetch+checkout+stamp+push version above |
+| `tests/test_release_workflow.py` | Update the back-merge step assertion to expect `git fetch origin main` and `git checkout -B chore/version-bump origin/main` before the push |
 
 ## Validation
 

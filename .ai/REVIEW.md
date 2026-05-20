@@ -150,3 +150,57 @@ No blocking or major findings.
 #### Verdict
 
 `PASS`
+
+---
+
+## Task: T-004
+
+### Review Round 1
+
+Status: **PASS**
+
+Reviewed: 2026-05-20
+
+#### Findings
+
+No blocking or major findings.
+
+| Severity | Location | Description | Required Fix |
+|----------|----------|-------------|--------------|
+| minor | `.github/workflows/release.yml` lines 61–62 | If `manifest.json` on `origin/main` already contains the release version (e.g. tag created from a pre-bumped commit), `git commit` will fail with "nothing to commit." Could be guarded with `git diff --quiet && echo "skip" \|\| git commit ...`. Unlikely in this project's flow but worth knowing. | No |
+
+#### Verification
+
+##### Steps
+
+1. Read `.ai/PLAN.md` T-004 scope: replace the `Commit version bump back to main` step body with `git fetch origin main` → `git checkout -B chore/version-bump origin/main` → re-apply Python stamp → `git add` → `git commit [skip ci]` → `git push origin HEAD:main`.
+2. Read `git diff HEAD` for all changed files: `release.yml`, `tests/test_release_workflow.py`, `README.md`.
+3. Confirmed full `release.yml` (lines 45–63): step matches the plan's YAML block exactly — same commands, same order.
+4. Confirmed re-stamp Python script is present between `git checkout` and `git add`, correctly re-applying the version to `origin/main`'s working tree (necessary since `git checkout -B origin/main` resets the working tree to main's state, discarding the tag-time stamp). ✅
+5. Verified character-index ordering in the YAML: `git fetch` (1461) < `git checkout` (1493) < stamp (1788) < `git add` (1957) < `git push` (2137) — all in correct sequence. ✅
+6. Confirmed `permissions: contents: write` still present — no new permission needed. ✅
+7. Verified `[skip ci]` token preserved in commit message — still suppresses `ci.yml`. ✅
+8. Reviewed new test assertions: `assertIn` for `git fetch origin main` and `git checkout -B chore/version-bump origin/main`; plus two `assertLess` ordering checks confirming fetch and checkout precede the `git add`. Ordering checks are a meaningful quality improvement over T-003's assertions. ✅
+9. Ran full test suite: `python -m unittest discover -s tests -p "test_*.py"` — **36 tests, OK**.
+10. Ran release workflow test verbosely: **1 test, OK**.
+11. Ran syntax check: `python -m py_compile custom_components/endgame_grocery/*.py` — **SYNTAX OK**.
+12. README updated to describe the fetch-before-push behaviour accurately.
+
+##### Findings
+
+- The fix directly addresses the observed v0.1.2 run failure: by branching from `origin/main` the push is always a fast-forward regardless of concurrent commits to main.
+- The re-stamp inside the back-merge step is correctly placed and uses the same Python pattern as the earlier `Stamp version into manifest.json` step — consistent style.
+- No integration source files were modified.
+
+##### Risks
+
+- **Empty-commit edge case (minor):** If `manifest.json` on main already holds the release version, `git commit` will fail. Not guarded; unlikely given normal tagging workflow.
+- **Shallow clone:** `fetch-depth: 1` default; subsequent `git fetch origin main` is a full fetch of that ref and works correctly.
+
+#### Open Questions
+
+- None.
+
+#### Verdict
+
+`PASS`

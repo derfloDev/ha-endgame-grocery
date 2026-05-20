@@ -43,6 +43,8 @@ class TestReleaseWorkflow(unittest.TestCase):
             'git config user.email "github-actions[bot]@users.noreply.github.com"',
             content,
         )
+        self.assertIn("git fetch origin main", content)
+        self.assertIn("git checkout -B chore/version-bump origin/main", content)
         self.assertIn("git add custom_components/endgame_grocery/manifest.json", content)
         self.assertIn(
             'git commit -m "chore(release): bump manifest version to '
@@ -50,6 +52,14 @@ class TestReleaseWorkflow(unittest.TestCase):
             content,
         )
         self.assertIn("git push origin HEAD:main", content)
+        self.assertLess(
+            content.index("git fetch origin main"),
+            content.index("git add custom_components/endgame_grocery/manifest.json"),
+        )
+        self.assertLess(
+            content.index("git checkout -B chore/version-bump origin/main"),
+            content.index("git add custom_components/endgame_grocery/manifest.json"),
+        )
 
 
 if __name__ == "__main__":
