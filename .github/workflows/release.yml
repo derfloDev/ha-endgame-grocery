@@ -32,8 +32,9 @@ jobs:
 
       - name: Build ZIP archive
         run: |
-          cd custom_components
-          zip -r ../endgame_grocery.zip endgame_grocery/
+          # HACS extracts ZIP releases directly into custom_components/endgame_grocery.
+          cd custom_components/endgame_grocery
+          zip -r ../../endgame_grocery.zip .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

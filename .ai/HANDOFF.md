@@ -22,3 +22,51 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 | Next Role | plan \| implement \| review \| none |
 
 ---
+
+### T-001/T-002 — plan — 2026-05-20T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reworked hotfix plan for v0.1.2: root cause is ZIP subdirectory nesting (HACS installs files one level too deep); secondary fix removes hardcoded version assertion from scaffold test |
+| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Next Role | implement |
+
+---
+
+### T-001 — implement — 2026-05-20T06:39:42Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Fixed the release ZIP packaging path, updated the workflow regression test, and corrected README installation/release docs to match the archive layout |
+| Files Changed | `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest tests.test_release_workflow` PASS; `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile` on `custom_components/endgame_grocery/*.py` PASS after explicit PowerShell file expansion; local ZIP layout inspection via `tar -tf endgame_grocery.zip` confirmed root-level `__init__.py` and `manifest.json` |
+| Commit | `fix(release): correct ZIP structure so HACS installs integration at the right path` |
+| Next Role | review |
+
+---
+
+### T-001 — review — 2026-05-20T08:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed ZIP build fix in release workflow; archive structure and tests verified correct; all 36 tests pass. |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-001 — implement — 2026-05-20T06:44:55Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Marked the reviewed ZIP packaging hotfix done and created the task commit |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Commit | `fix(release): correct ZIP structure so HACS installs integration at the right path` |
+| Next Role | none |
+
+---
