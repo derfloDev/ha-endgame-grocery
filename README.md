@@ -43,8 +43,9 @@ Endgame Grocery connects an Endgame Grocery server to Home Assistant and exposes
 ## Manual Installation
 
 1. Download the latest `endgame_grocery.zip` asset from the GitHub Releases page.
-2. Extract the `endgame_grocery/` folder into `<config>/custom_components/`.
-3. Restart Home Assistant.
+2. Create the folder `<config>/custom_components/endgame_grocery/` if it does not already exist.
+3. Extract the ZIP contents directly into `<config>/custom_components/endgame_grocery/`.
+4. Restart Home Assistant.
 
 ## Configuration
 
@@ -68,7 +69,7 @@ After setup, each Endgame Grocery list appears as its own Home Assistant `todo` 
 
 ## Release and versioning
 
-Contributors publish a release by pushing a semantic version tag. The release workflow stamps the tag version into the packaged `manifest.json`, builds `endgame_grocery.zip`, and attaches that archive to the GitHub Release with generated notes.
+Contributors publish a release by pushing a semantic version tag. The release workflow stamps the tag version into the packaged `manifest.json`, builds `endgame_grocery.zip` with the integration files at the archive root, attaches that archive to the GitHub Release with generated notes, and then commits the stamped `manifest.json` back to `main` with a `[skip ci]` bot commit so the repository stays in sync with the published artifact.
 
 ```bash
 git tag v0.2.0

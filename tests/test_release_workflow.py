@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestReleaseWorkflow(unittest.TestCase):
-    """Verify the T-007 workflow structure and release packaging contract."""
+    """Verify the workflow structure, packaging, and version sync contract."""
 
     def test_release_workflow_matches_planned_contract(self) -> None:
         """The release workflow should package the integration from version tags."""
@@ -32,11 +32,24 @@ class TestReleaseWorkflow(unittest.TestCase):
         self.assertIn("custom_components/endgame_grocery/manifest.json", content)
         self.assertIn('data["version"] = "${{ steps.version.outputs.VERSION }}"', content)
         self.assertIn('json.dumps(data, indent=2) + "\\n"', content)
-        self.assertIn("cd custom_components", content)
-        self.assertIn("zip -r ../endgame_grocery.zip endgame_grocery/", content)
+        self.assertIn("cd custom_components/endgame_grocery", content)
+        self.assertIn("zip -r ../../endgame_grocery.zip .", content)
+        self.assertNotIn("zip -r ../endgame_grocery.zip endgame_grocery/", content)
         self.assertIn("uses: softprops/action-gh-release@v2", content)
         self.assertIn("files: endgame_grocery.zip", content)
         self.assertIn("generate_release_notes: true", content)
+        self.assertIn('git config user.name "github-actions[bot]"', content)
+        self.assertIn(
+            'git config user.email "github-actions[bot]@users.noreply.github.com"',
+            content,
+        )
+        self.assertIn("git add custom_components/endgame_grocery/manifest.json", content)
+        self.assertIn(
+            'git commit -m "chore(release): bump manifest version to '
+            '${{ steps.version.outputs.VERSION }} [skip ci]"',
+            content,
+        )
+        self.assertIn("git push origin HEAD:main", content)
 
 
 if __name__ == "__main__":
