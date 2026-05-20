@@ -69,7 +69,7 @@ After setup, each Endgame Grocery list appears as its own Home Assistant `todo` 
 
 ## Release and versioning
 
-Contributors publish a release by pushing a semantic version tag. The release workflow stamps the tag version into the packaged `manifest.json`, builds `endgame_grocery.zip` with the integration files at the archive root, attaches that archive to the GitHub Release with generated notes, and then commits the stamped `manifest.json` back to `main` with a `[skip ci]` bot commit so the repository stays in sync with the published artifact.
+Contributors publish a release by pushing a semantic version tag. The release workflow stamps the tag version into the packaged `manifest.json`, builds `endgame_grocery.zip` with the integration files at the archive root, attaches that archive to the GitHub Release with generated notes, and then fetches the latest `main` branch before committing the stamped `manifest.json` back with a `[skip ci]` bot commit so the repository stays in sync without a detached-HEAD push rejection.
 
 ```bash
 git tag v0.2.0

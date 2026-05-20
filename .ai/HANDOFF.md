@@ -156,11 +156,59 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 
 ---
 
+### T-004 — plan — 2026-05-20T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Diagnosed back-merge push rejection in v0.1.2 release run (26147018103): workflow pushes from detached tag HEAD but main had moved forward; fix is to fetch origin/main, branch from it, re-stamp, and push as a fast-forward |
+| Files Changed | `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Next Role | implement |
+
+---
+
 ### Cycle closed — unversioned — 2026-05-20T07:00:12Z
 
 | Field | Value |
 |-------|-------|
 | Summary | All tasks done; cycle closed |
 | Version | unversioned |
+
+---
+
+### T-004 — implement — 2026-05-20T07:42:51Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Reworked the release back-merge step to fetch and branch from `origin/main` before restamping and pushing the manifest version bump |
+| Files Changed | `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest tests.test_release_workflow` PASS; `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile` on `custom_components/endgame_grocery/*.py` PASS after explicit PowerShell file expansion; live GitHub release run not executed locally |
+| Commit | `fix(release): fetch origin/main before back-merge to avoid push rejection` |
+| Next Role | review |
+
+---
+
+### T-004 — review — 2026-05-20T08:35:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed detached-HEAD push fix; fetch+checkout-from-origin/main approach is correct, re-stamp placement verified, ordering confirmed by character-index check; 36 tests pass. |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-004 — implement — 2026-05-20T08:51:50Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Marked the reviewed detached-HEAD back-merge fix done and created the task commit |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Commit | `fix(release): fetch origin/main before back-merge to avoid push rejection` |
+| Next Role | none |
 
 ---
