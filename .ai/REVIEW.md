@@ -97,3 +97,56 @@ No blocking or major findings.
 #### Verdict
 
 `PASS`
+
+---
+
+## Task: T-003
+
+### Review Round 1
+
+Status: **PASS**
+
+Reviewed: 2026-05-20
+
+#### Findings
+
+No blocking or major findings.
+
+| Severity | Location | Description | Required Fix |
+|----------|----------|-------------|--------------|
+| minor | `.github/workflows/release.yml` | If a commit lands on `main` between tag creation and the workflow's `git push origin HEAD:main`, the push will fail as non-fast-forward. Acknowledged design trade-off in the plan (single maintainer, no concurrent release authors); logged for awareness. | No |
+| nit | `.github/workflows/release.yml` line 15 | `actions/checkout@v4` uses default `fetch-depth: 1` (shallow clone). Correct for this push pattern; no impact on correctness. | No |
+
+#### Verification
+
+##### Steps
+
+1. Read `.ai/PLAN.md` T-003 scope: add a `Commit version bump back to main` step after `Create GitHub Release`; use `git config`, `git add`, `git commit -m "… [skip ci]"`, `git push origin HEAD:main`.
+2. Read `git diff HEAD` for all changed files: `release.yml`, `tests/test_release_workflow.py`, `README.md`.
+3. Confirmed the new step in `release.yml` (lines 45–52) matches the plan exactly, including commit message format with `[skip ci]` token and `HEAD:main` refspec.
+4. Confirmed `permissions: contents: write` was already present at the workflow level — no new permission needed.
+5. Read `ci.yml`: triggered on `push: branches: [main]`. The `[skip ci]` token in the bot commit message is the correct GitHub Actions mechanism to suppress this workflow on the back-merge push. ✅
+6. Verified test assertions in `test_release_workflow.py` (lines 41–52): all 7 new assertions map 1-to-1 to the 7 new YAML lines; no over-fitting or under-fitting.
+7. Ran full test suite: `python -m unittest discover -s tests -p "test_*.py"` — **36 tests, OK**.
+8. Ran release workflow test verbosely: **1 test, OK**.
+9. Ran syntax check: `python -m py_compile custom_components/endgame_grocery/*.py` — **SYNTAX OK**.
+10. README paragraph updated accurately to describe the back-merge step.
+
+##### Findings
+
+- Workflow step is in the correct position (after `Create GitHub Release`), ensuring the ZIP artifact is already attached before the manifest commit is pushed.
+- `[skip ci]` correctly suppresses `ci.yml` (the only branch-push-triggered workflow in the repo) on the bot commit.
+- No integration source files were modified; all changes are confined to the workflow, its test, and the README.
+
+##### Risks
+
+- **Non-fast-forward push (minor):** If another commit reaches `main` after the release tag was cut but before the bot push completes, `git push origin HEAD:main` will be rejected. Mitigation: single-maintainer project; this scenario is unlikely in practice. Accepted risk per plan.
+- **Shallow checkout:** `fetch-depth: 1` is the default; this is fine for the commit+push pattern used here.
+
+#### Open Questions
+
+- None.
+
+#### Verdict
+
+`PASS`

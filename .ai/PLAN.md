@@ -137,11 +137,64 @@ self.assertRegex(
 - All other existing tests continue to pass.
 - Syntax check passes for all integration modules.
 
-## Commit message (for commit_task)
+---
 
+### T-003 — commit manifest version back to main after release
+
+**Problem**
+
+The release workflow stamps the manifest version only inside the ZIP artifact.
+The `manifest.json` in the repository stays permanently at `"0.1.0"`, so the repo
+and the distributed ZIP are always out of sync. Anyone reading the source sees a
+stale version; the test cannot validate the in-repo version either.
+
+**Approach**
+
+After the ZIP is built and the GitHub Release is created, the workflow configures git,
+commits the stamped `manifest.json`, and pushes that commit to `main`.
+
+- The commit must carry `[skip ci]` in its message so the push does not re-trigger
+  the CI validation pipeline.
+- The workflow already has `permissions: contents: write`, so no extra token is needed.
+
+**Files to change**
+
+| File | Change |
+|------|--------|
+| `.github/workflows/release.yml` | Add a git-config + commit + push step after the GitHub Release step |
+
+**What to do — step by step**
+
+Add the following step at the end of the `release` job, after `Create GitHub Release`:
+
+```yaml
+- name: Commit version bump back to main
+  run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+    git add custom_components/endgame_grocery/manifest.json
+    git commit -m "chore(release): bump manifest version to ${{ steps.version.outputs.VERSION }} [skip ci]"
+    git push origin HEAD:main
 ```
-fix(release): correct ZIP structure so HACS installs integration at the right path
-```
+
+**Edge-case notes**
+
+- `[skip ci]` prevents the CI workflow from running on the bot commit (GitHub Actions
+  skips workflows when the commit message contains this token).
+- The push targets `main` explicitly via `HEAD:main`; the workflow runs on a detached
+  tag ref, so the explicit refspec is required.
+- If a branch-protection rule requires PR reviews, the `github-actions[bot]` push will
+  fail. In that case the workflow must be given bypass rights or the step must use a
+  Personal Access Token. This project currently has no branch protection, so the default
+  `GITHUB_TOKEN` is sufficient.
+
+---
+
+## Commit messages (for commit_task)
+
+- T-001: `fix(release): correct ZIP structure so HACS installs integration at the right path`
+- T-002: `test(scaffold): accept semver manifest versions in scaffold validation`
+- T-003: `feat(release): commit stamped manifest version back to main after each release`
 
 ## Validation
 

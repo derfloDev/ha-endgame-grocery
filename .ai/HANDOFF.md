@@ -96,6 +96,30 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 
 ---
 
+### T-003 — plan — 2026-05-20T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Added T-003: extend release workflow to commit the stamped manifest.json back to main so repo and ZIP always show the same version; uses `[skip ci]` to avoid re-triggering CI |
+| Files Changed | `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Next Role | implement |
+
+---
+
+### T-003 — implement — 2026-05-20T06:55:51Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Extended the release workflow to commit the stamped manifest version back to `main`, and updated workflow coverage and release docs to match |
+| Files Changed | `.github/workflows/release.yml`, `README.md`, `tests/test_release_workflow.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest tests.test_release_workflow` PASS; `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile` on `custom_components/endgame_grocery/*.py` PASS after explicit PowerShell file expansion; live GitHub Actions push-to-`main` behavior not executed locally |
+| Commit | `feat(release): commit stamped manifest version back to main after each release` |
+| Next Role | review |
+
+---
+
 ### T-002 — implement — 2026-05-20T06:49:20Z
 
 | Field | Value |
@@ -104,6 +128,30 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 | Summary | Marked the reviewed scaffold semver test update done and created the task commit |
 | Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
 | Commit | `test(scaffold): accept semver manifest versions in scaffold validation` |
+| Next Role | none |
+
+---
+
+### T-003 — review — 2026-05-20T08:20:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed manifest back-merge step in release workflow; `[skip ci]` verified against ci.yml trigger; all 36 tests pass; step matches plan exactly. |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-003 — implement — 2026-05-20T06:59:06Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Marked the reviewed manifest back-merge workflow update done and created the task commit |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Commit | `feat(release): commit stamped manifest version back to main after each release` |
 | Next Role | none |
 
 ---
