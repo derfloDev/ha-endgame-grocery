@@ -70,3 +70,40 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 | Next Role | none |
 
 ---
+
+### T-002 — implement — 2026-05-20T06:46:42Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Replaced the hardcoded manifest version assertion with a semver-format check in the scaffold test |
+| Files Changed | `tests/test_scaffold.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest tests.test_scaffold` PASS; `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile` on `custom_components/endgame_grocery/*.py` PASS after explicit PowerShell file expansion |
+| Commit | `test(scaffold): accept semver manifest versions in scaffold validation` |
+| Next Role | review |
+
+---
+
+### T-002 — review — 2026-05-20T08:10:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed semver-format assertion replacement in test_scaffold; regex correct, all 36 tests pass, scope limited to one file. |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-002 — implement — 2026-05-20T06:49:20Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Marked the reviewed scaffold semver test update done and created the task commit |
+| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Commit | `test(scaffold): accept semver manifest versions in scaffold validation` |
+| Next Role | none |
+
+---

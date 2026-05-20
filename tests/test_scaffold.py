@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import re
 import sys
 import unittest
 from datetime import timedelta
@@ -41,7 +42,11 @@ class TestHacsScaffold(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertEqual(manifest["domain"], "endgame_grocery")
         self.assertEqual(manifest["name"], "Endgame Grocery")
-        self.assertEqual(manifest["version"], "0.1.0")
+        self.assertRegex(
+            manifest["version"],
+            re.compile(r"^\d+\.\d+\.\d+$"),
+            "manifest version must be a valid semver string",
+        )
         self.assertEqual(manifest["homeassistant"], "2026.5.0")
         self.assertEqual(manifest["iot_class"], "cloud_polling")
         self.assertEqual(manifest["requirements"], [])

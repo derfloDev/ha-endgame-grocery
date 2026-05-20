@@ -48,3 +48,52 @@ No blocking or major findings.
 #### Verdict
 
 `PASS`
+
+---
+
+## Task: T-002
+
+### Review Round 1
+
+Status: **PASS**
+
+Reviewed: 2026-05-20
+
+#### Findings
+
+No blocking or major findings.
+
+| Severity | Location | Description | Required Fix |
+|----------|----------|-------------|--------------|
+| nit | `tests/test_scaffold.py` line 47 | Implementation uses `re.compile(r"^\d+\.\d+\.\d+$")` where plan shows a bare string literal; both are accepted by `assertRegex` — functionally identical. | No |
+
+#### Verification
+
+##### Steps
+
+1. Read `.ai/PLAN.md` acceptance criteria for T-002.
+2. Read `git diff HEAD -- tests/test_scaffold.py` — exactly one test assertion changed: `assertEqual(manifest["version"], "0.1.0")` replaced with `assertRegex(...)` using `r"^\d+\.\d+\.\d+$"`.
+3. Confirmed `import re` was added at the top of the file.
+4. Ran full test suite: `python -m unittest discover -s tests -p "test_*.py"` — **36 tests, OK**.
+5. Ran scaffold tests verbosely: `python -m unittest tests.test_scaffold -v` — all 4 scaffold tests pass including `test_manifest_json`.
+6. Ran syntax check: `python -m py_compile custom_components/endgame_grocery/*.py` — **SYNTAX OK**.
+7. Manually exercised the regex against the current manifest version (`"0.1.0"` → matches) and confirmed invalid formats (`"0.1"`, `"v0.1.0"`, `"0.1.0.1"`, `"latest"`, `"1"`) are all correctly rejected.
+8. Confirmed no other files were changed beyond `tests/test_scaffold.py` — scope is exactly as planned.
+
+##### Findings
+
+- The regex correctly accepts any `X.Y.Z` semver string and rejects non-conforming values.
+- The change does not lock CI to a specific version; future releases will pass without touching the test.
+- No documentation or integration source files were incorrectly modified.
+
+##### Risks
+
+- None. Change is confined to a single test assertion; no production code is affected.
+
+#### Open Questions
+
+- None.
+
+#### Verdict
+
+`PASS`
