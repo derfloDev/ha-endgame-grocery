@@ -127,7 +127,7 @@ class EndgameGroceryTodoListEntity(
 
         await self.coordinator.async_request_refresh()
 
-    async def async_delete_todo_item(self, uids: list[str]) -> None:
+    async def async_delete_todo_items(self, uids: list[str]) -> None:
         """Delete one or more list items and surface API failures as HA errors."""
         try:
             for uid in uids:

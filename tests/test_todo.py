@@ -321,12 +321,12 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(coordinator.client.calls, [])
         self.assertEqual(coordinator.refresh_calls, 0)
 
-    async def test_delete_todo_item_deletes_all_uids_then_refreshes(self) -> None:
+    async def test_delete_todo_items_deletes_all_uids_then_refreshes(self) -> None:
         """Deleting items should call the API once per uid, then refresh."""
         coordinator = self._build_coordinator()
         entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
 
-        await entity.async_delete_todo_item(["item-1", "item-2"])
+        await entity.async_delete_todo_items(["item-1", "item-2"])
 
         self.assertEqual(
             coordinator.client.calls,
@@ -337,7 +337,7 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(coordinator.refresh_calls, 1)
 
-    async def test_delete_todo_item_raises_ha_error_on_api_failure(self) -> None:
+    async def test_delete_todo_items_raises_ha_error_on_api_failure(self) -> None:
         """Delete failures should surface as HomeAssistantError and skip refresh."""
         from custom_components.endgame_grocery.api import EndgameConnectionError
 
@@ -347,7 +347,7 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
 
         with self.assertLogs("custom_components.endgame_grocery.todo", level="ERROR") as logs:
             with self.assertRaises(FakeHomeAssistantError):
-                await entity.async_delete_todo_item(["item-1"])
+                await entity.async_delete_todo_items(["item-1"])
 
         self.assertIn("Failed to delete item(s) from list list-1", logs.output[0])
         self.assertEqual(coordinator.refresh_calls, 0)
