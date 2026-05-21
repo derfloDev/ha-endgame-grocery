@@ -20,4 +20,4 @@ Command expectations:
 
 | Task ID | Scope | Status | Acceptance Criteria | Evidence | Next Role |
 | --- | --- | --- | --- | --- | --- |
-| T-001 | replace with task scope | in_planning | replace with measurable acceptance criteria | n/a | planner |
+| T-001 | Add "Endgame Grocery App" section to README.md | done | Section appears before Prerequisites; links to app repo and Docker docs; API-key instructions present; no other README content changed | `python -m unittest discover -s tests -p "test_*.py"`; `python -m py_compile (Get-ChildItem custom_components/endgame_grocery/*.py | ForEach-Object { $_.FullName })` | none |

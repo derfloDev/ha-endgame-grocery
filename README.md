@@ -25,6 +25,16 @@ Endgame Grocery connects an Endgame Grocery server to Home Assistant and exposes
 - Config flow setup with live API credential validation
 - Works with the Lovelace Todo card and Home Assistant automations
 
+## Endgame Grocery App
+
+This integration connects Home Assistant with an [Endgame Grocery](https://github.com/derfloDev/endgame_grocery) server - a self-hosted PWA for shared grocery lists (React, Express, PostgreSQL).
+
+Features: shared lists, dark Endgame theme, push notifications, offline support.
+
+**Generate your API key:** In the app under *Info & Settings -> Home Assistant API Key*.
+
+[Install the app (Docker)](https://github.com/derfloDev/endgame_grocery#docker-deployment)
+
 ## Prerequisites
 
 - An Endgame Grocery server that is reachable from Home Assistant

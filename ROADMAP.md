@@ -1,29 +1,21 @@
 # ROADMAP
 
-Goal: define and deliver the scope for this cycle.
-
-Delete any unused example sections below. Only the Goal and one concrete priority are required.
+Goal: Improve the README to make the relationship between this Home Assistant integration and the Endgame Grocery app clear for new users.
 
 ## Priority 1
 
-Objective: replace with objective.
+Objective: Add a compact "Endgame Grocery App" section to README.md that explains what the companion app is, links to its repository, and tells users how to generate the API key.
 
-- Replace with planned outcome.
+Constraints:
+- README stays in English
+- Section is compact (no Docker quickstart, no full feature table)
+- Placed directly before the existing "Prerequisites" section
+- Content derived from https://github.com/derfloDev/endgame_grocery
 
-## Examples
-
-These example sections are optional illustrations, not required structure.
-
-<!-- Example: remove or replace this section -->
-## Priority 2
-
-Objective: optional second objective.
-
-- Replace with optional planned outcome.
-
-<!-- Example: remove or replace this section -->
-## Priority 3
-
-Objective: optional third objective.
-
-- Replace with optional planned outcome.
+Acceptance criteria:
+- A new "## Endgame Grocery App" section appears before "## Prerequisites"
+- Section describes the app as a self-hosted PWA (React · Express · PostgreSQL) for shared grocery lists
+- Section links to `https://github.com/derfloDev/endgame_grocery`
+- Section links to the Docker deployment docs in that repo
+- Section tells users where to find the API key: *Info & Settings → Home Assistant API Key*
+- No other sections of the README are changed
