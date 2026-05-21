@@ -19,6 +19,14 @@ class FakeHomeAssistant:
     """Minimal Home Assistant type placeholder."""
 
 
+class FakeHomeAssistantError(Exception):
+    """Stand-in for Home Assistant service-layer errors."""
+
+
+class FakeAiohttpClientError(Exception):
+    """Stand-in for aiohttp.ClientError."""
+
+
 class FakeCoordinatorEntity:
     """Minimal CoordinatorEntity base class for unit tests."""
 
@@ -81,6 +89,7 @@ class FakeClient:
 
     def __init__(self) -> None:
         self.calls: list[tuple[str, object, ...]] = []
+        self.raise_on_delete: Exception | None = None
 
     async def create_item(self, list_id: str, name: str | None) -> None:
         self.calls.append(("create_item", list_id, name))
@@ -92,6 +101,8 @@ class FakeClient:
         self.calls.append(("toggle_item", list_id, item_id))
 
     async def delete_item(self, list_id: str, item_id: str) -> None:
+        if self.raise_on_delete is not None:
+            raise self.raise_on_delete
         self.calls.append(("delete_item", list_id, item_id))
 
 
@@ -129,14 +140,22 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
         fake_update_coordinator = types.SimpleNamespace(
             CoordinatorEntity=FakeCoordinatorEntity
         )
+        fake_aiohttp = types.SimpleNamespace(
+            ClientError=FakeAiohttpClientError,
+            ClientSession=object,
+        )
 
         cls._module_patcher = patch.dict(
             sys.modules,
             {
+                "aiohttp": fake_aiohttp,
                 "homeassistant": types.ModuleType("homeassistant"),
                 "homeassistant.components": types.ModuleType("homeassistant.components"),
                 "homeassistant.components.todo": fake_todo,
                 "homeassistant.core": fake_core,
+                "homeassistant.exceptions": types.SimpleNamespace(
+                    HomeAssistantError=FakeHomeAssistantError
+                ),
                 "homeassistant.helpers": types.ModuleType("homeassistant.helpers"),
                 "homeassistant.helpers.device_registry": fake_device_registry,
                 "homeassistant.helpers.entity_platform": fake_entity_platform,
@@ -144,12 +163,14 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
             },
         )
         cls._module_patcher.start()
+        sys.modules.pop("custom_components.endgame_grocery.api", None)
         sys.modules.pop("custom_components.endgame_grocery.todo", None)
         cls.todo = importlib.import_module("custom_components.endgame_grocery.todo")
 
     @classmethod
     def tearDownClass(cls) -> None:
         """Clean up fake dependency modules."""
+        sys.modules.pop("custom_components.endgame_grocery.api", None)
         sys.modules.pop("custom_components.endgame_grocery.todo", None)
         cls._module_patcher.stop()
 
@@ -315,6 +336,21 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
             ],
         )
         self.assertEqual(coordinator.refresh_calls, 1)
+
+    async def test_delete_todo_item_raises_ha_error_on_api_failure(self) -> None:
+        """Delete failures should surface as HomeAssistantError and skip refresh."""
+        from custom_components.endgame_grocery.api import EndgameConnectionError
+
+        coordinator = self._build_coordinator()
+        coordinator.client.raise_on_delete = EndgameConnectionError("timeout")
+        entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
+
+        with self.assertLogs("custom_components.endgame_grocery.todo", level="ERROR") as logs:
+            with self.assertRaises(FakeHomeAssistantError):
+                await entity.async_delete_todo_item(["item-1"])
+
+        self.assertIn("Failed to delete item(s) from list list-1", logs.output[0])
+        self.assertEqual(coordinator.refresh_calls, 0)
 
 
 if __name__ == "__main__":

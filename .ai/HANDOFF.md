@@ -28,52 +28,52 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 | Field | Value |
 |-------|-------|
 | Agent | claude |
-| Summary | Planned addition of a compact "Endgame Grocery App" section to README.md, positioned before Prerequisites, with link to companion app repo, feature summary, API-key instructions, and Docker install link. |
-| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Summary | Planned fix for `todo/remove_item` "unknown error": add `EndgameApiError` → `HomeAssistantError` handling in `async_delete_todo_item` and harden `_request` for empty-body 2xx responses |
+| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md` |
 | Next Role | implement |
 
 ---
 
-### T-001 — implement — 2026-05-21T06:08:22Z
+### T-001 — implement — 2026-05-21T15:16:05Z
 
 | Field | Value |
 |-------|-------|
 | Agent | codex |
-| Summary | Added the planned README section for the companion Endgame Grocery app and recorded validation evidence for review. |
-| Files Changed | `README.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
-| Validation | `python -m unittest discover -s tests -p "test_*.py"` PASS; `python -m py_compile (Get-ChildItem custom_components/endgame_grocery/*.py | ForEach-Object { $_.FullName })` PASS |
-| Commit | `docs(readme): add Endgame Grocery app section` |
+| Summary | Wrapped todo-item delete API failures as `HomeAssistantError`, tolerated empty-body 2xx API responses, added regression tests, and documented the new delete error message |
+| Files Changed | `README.md`, `.ai/TASKS.md`, `custom_components/endgame_grocery/api.py`, `custom_components/endgame_grocery/todo.py`, `tests/test_api.py`, `tests/test_todo.py` |
+| Validation | `python -m unittest tests.test_api` ✅; `python -m unittest tests.test_todo` ✅; `python -m unittest discover -s tests -p "test_*.py"` ✅; `Get-ChildItem custom_components/endgame_grocery/*.py \| ForEach-Object { python -m py_compile $_.FullName }` ✅ |
+| Commit | `fix(todo): surface delete failures instead of unknown errors` |
 | Next Role | review |
 
 ---
 
-### T-001 — review — 2026-05-21T08:00:00Z
+### T-001 — review — 2026-05-21T15:30:00Z
 
 | Field | Value |
 |-------|-------|
 | Agent | claude |
-| Summary | Reviewed README.md addition of "Endgame Grocery App" section; all acceptance criteria met, four nit-level wording deviations from plan's exact text with no impact on meaning. |
+| Summary | Reviewed delete-error-handling fix; all four acceptance criteria met, 38 tests pass, no blockers found |
 | Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
-| Verdict | PASS_WITH_NOTES |
+| Verdict | PASS |
 | Blocking Findings | none |
 | Next Role | implement |
 
 ---
 
-### T-001 — implement — 2026-05-21T06:37:54Z
+### T-001 — implement — 2026-05-21T15:40:29Z
 
 | Field | Value |
 |-------|-------|
 | Agent | codex |
-| Summary | Marked T-001 done and created the approval commit from the recorded `next_task` message. |
-| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md` |
-| Validation | reused reviewer-approved evidence from `next_task` |
-| Commit | `docs(readme): add Endgame Grocery app section` |
+| Summary | Staged all reviewed T-001 changes, marked the task done, and created the implementation commit |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/TASKS.md` |
+| Validation | `git add -A && git commit -m "fix(todo): surface delete failures instead of unknown errors"` ✅ |
+| Commit | `0a41145 fix(todo): surface delete failures instead of unknown errors` |
 | Next Role | none |
 
 ---
 
-### Cycle closed — unversioned — 2026-05-21T11:16:07Z
+### Cycle closed — unversioned — 2026-05-21T15:41:33Z
 
 | Field | Value |
 |-------|-------|

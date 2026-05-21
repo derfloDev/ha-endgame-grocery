@@ -12,10 +12,12 @@ from homeassistant.components.todo import (
     TodoListEntityFeature,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .api import EndgameApiError
 from .const import DOMAIN
 
 if TYPE_CHECKING:
@@ -126,7 +128,13 @@ class EndgameGroceryTodoListEntity(
         await self.coordinator.async_request_refresh()
 
     async def async_delete_todo_item(self, uids: list[str]) -> None:
-        """Delete one or more list items and refresh coordinator data."""
-        for uid in uids:
-            await self.coordinator.client.delete_item(self._list_id, uid)
+        """Delete one or more list items and surface API failures as HA errors."""
+        try:
+            for uid in uids:
+                await self.coordinator.client.delete_item(self._list_id, uid)
+        except EndgameApiError as err:
+            _LOGGER.exception("Failed to delete item(s) from list %s", self._list_id)
+            raise HomeAssistantError(
+                f"Could not delete item from list {self._list_id}: {err}"
+            ) from err
         await self.coordinator.async_request_refresh()
