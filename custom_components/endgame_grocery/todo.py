@@ -52,6 +52,7 @@ class EndgameGroceryTodoListEntity(
         TodoListEntityFeature.CREATE_TODO_ITEM
         | TodoListEntityFeature.UPDATE_TODO_ITEM
         | TodoListEntityFeature.DELETE_TODO_ITEM
+        | TodoListEntityFeature.SET_DESCRIPTION_ON_ITEM
     )
 
     def __init__(
@@ -83,6 +84,7 @@ class EndgameGroceryTodoListEntity(
             TodoItem(
                 uid=item["id"],
                 summary=item["name"],
+                description=item.get("description"),
                 status=(
                     TodoItemStatus.NEEDS_ACTION
                     if item["status"] == "open"
@@ -94,7 +96,11 @@ class EndgameGroceryTodoListEntity(
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
         """Create a new list item and refresh coordinator data."""
-        await self.coordinator.client.create_item(self._list_id, item.summary)
+        await self.coordinator.client.create_item(
+            self._list_id,
+            item.summary,
+            description=item.description,
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_update_todo_item(self, item: TodoItem) -> None:
@@ -109,11 +115,17 @@ class EndgameGroceryTodoListEntity(
             )
             return
 
-        if item.summary is not None and item.summary != current["name"]:
+        current_description = current.get("description")
+        name_changed = item.summary is not None and item.summary != current["name"]
+        description_changed = item.description != current_description
+
+        if name_changed or description_changed:
+            effective_name = item.summary if item.summary is not None else current["name"]
             await self.coordinator.client.patch_item(
                 self._list_id,
                 item.uid,
-                item.summary,
+                effective_name,
+                description=item.description,
             )
 
         if item.status is not None:

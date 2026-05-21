@@ -82,3 +82,41 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 | Next Role | none |
 
 ---
+
+### T-002 — implement — 2026-05-21T16:38:13Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Added grocery item description support across the API client, todo entity, tests, and README usage documentation. |
+| Files Changed | `README.md`, `custom_components/endgame_grocery/api.py`, `custom_components/endgame_grocery/todo.py`, `tests/test_api.py`, `tests/test_todo.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Validation | `python -m unittest discover -s tests -p "test_*.py"` OK; `Get-ChildItem custom_components/endgame_grocery -Filter *.py | ForEach-Object { python -m py_compile $_.FullName }` OK |
+| Commit | `feat(todo): support item descriptions in Home Assistant` |
+| Next Role | review |
+
+---
+
+### T-002 — review — 2026-05-21T16:45:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Verified description field support across `api.py`, `todo.py`, `test_api.py`, `test_todo.py`, and `README.md`; all 44 unit tests pass and all modules compile cleanly. |
+| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
+### T-002 — commit_task — 2026-05-21T16:44:24Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Marked T-002 done and prepared the reviewed description-support changes for commit. |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/api.py`, `custom_components/endgame_grocery/todo.py`, `tests/test_api.py`, `tests/test_todo.py` |
+| Commit | `feat(todo): support item descriptions in Home Assistant` |
+| Next Role | none |
+
+---
