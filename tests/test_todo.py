@@ -48,6 +48,7 @@ class FakeTodoListEntityFeature:
     CREATE_TODO_ITEM = 1
     UPDATE_TODO_ITEM = 2
     DELETE_TODO_ITEM = 4
+    SET_DESCRIPTION_ON_ITEM = 8
 
 
 class FakeTodoItemStatus:
@@ -62,6 +63,7 @@ class FakeTodoItem:
     """Simple todo item container used by the entity tests."""
 
     summary: str | None = None
+    description: str | None = None
     status: str | None = None
     uid: str | None = None
 
@@ -91,11 +93,24 @@ class FakeClient:
         self.calls: list[tuple[str, object, ...]] = []
         self.raise_on_delete: Exception | None = None
 
-    async def create_item(self, list_id: str, name: str | None) -> None:
-        self.calls.append(("create_item", list_id, name))
+    async def create_item(
+        self,
+        list_id: str,
+        name: str | None,
+        *,
+        description: str | None = None,
+    ) -> None:
+        self.calls.append(("create_item", list_id, name, description))
 
-    async def patch_item(self, list_id: str, item_id: str | None, name: str) -> None:
-        self.calls.append(("patch_item", list_id, item_id, name))
+    async def patch_item(
+        self,
+        list_id: str,
+        item_id: str | None,
+        name: str,
+        *,
+        description: str | None = None,
+    ) -> None:
+        self.calls.append(("patch_item", list_id, item_id, name, description))
 
     async def toggle_item(self, list_id: str, item_id: str | None) -> None:
         self.calls.append(("toggle_item", list_id, item_id))
@@ -120,7 +135,7 @@ class FakeCoordinator:
 
 
 class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
-    """Verify T-005 todo entity behavior."""
+    """Verify todo entity behavior."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -181,8 +196,18 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
                 "list-1": {
                     "meta": {"id": "list-1", "name": "Weekly Shopping"},
                     "items": [
-                        {"id": "item-1", "name": "Milk", "status": "open"},
-                        {"id": "item-2", "name": "Eggs", "status": "done"},
+                        {
+                            "id": "item-1",
+                            "name": "Milk",
+                            "description": "2% fat",
+                            "status": "open",
+                        },
+                        {
+                            "id": "item-2",
+                            "name": "Eggs",
+                            "description": None,
+                            "status": "done",
+                        },
                     ],
                 },
                 "list-2": {
@@ -221,7 +246,8 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
             entity._attr_supported_features,
             FakeTodoListEntityFeature.CREATE_TODO_ITEM
             | FakeTodoListEntityFeature.UPDATE_TODO_ITEM
-            | FakeTodoListEntityFeature.DELETE_TODO_ITEM,
+            | FakeTodoListEntityFeature.DELETE_TODO_ITEM
+            | FakeTodoListEntityFeature.SET_DESCRIPTION_ON_ITEM,
         )
         self.assertEqual(
             entity.device_info,
@@ -245,11 +271,13 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
                 FakeTodoItem(
                     uid="item-1",
                     summary="Milk",
+                    description="2% fat",
                     status=FakeTodoItemStatus.NEEDS_ACTION,
                 ),
                 FakeTodoItem(
                     uid="item-2",
                     summary="Eggs",
+                    description=None,
                     status=FakeTodoItemStatus.COMPLETED,
                 ),
             ],
@@ -262,7 +290,25 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
 
         await entity.async_create_todo_item(FakeTodoItem(summary="Bread"))
 
-        self.assertEqual(coordinator.client.calls, [("create_item", "list-1", "Bread")])
+        self.assertEqual(
+            coordinator.client.calls,
+            [("create_item", "list-1", "Bread", None)],
+        )
+        self.assertEqual(coordinator.refresh_calls, 1)
+
+    async def test_create_todo_item_with_description(self) -> None:
+        """Creating an item should pass description through to the API."""
+        coordinator = self._build_coordinator()
+        entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
+
+        await entity.async_create_todo_item(
+            FakeTodoItem(summary="Bread", description="Whole grain")
+        )
+
+        self.assertEqual(
+            coordinator.client.calls,
+            [("create_item", "list-1", "Bread", "Whole grain")],
+        )
         self.assertEqual(coordinator.refresh_calls, 1)
 
     async def test_update_todo_item_patches_and_toggles_sequentially(self) -> None:
@@ -274,6 +320,7 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
             FakeTodoItem(
                 uid="item-1",
                 summary="Oat Milk",
+                description="2% fat",
                 status=FakeTodoItemStatus.COMPLETED,
             )
         )
@@ -281,8 +328,54 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             coordinator.client.calls,
             [
-                ("patch_item", "list-1", "item-1", "Oat Milk"),
+                ("patch_item", "list-1", "item-1", "Oat Milk", "2% fat"),
                 ("toggle_item", "list-1", "item-1"),
+            ],
+        )
+        self.assertEqual(coordinator.refresh_calls, 1)
+
+    async def test_update_todo_item_patches_description_only(self) -> None:
+        """Description-only changes should patch with the current item name."""
+        coordinator = self._build_coordinator()
+        entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
+
+        await entity.async_update_todo_item(
+            FakeTodoItem(
+                uid="item-1",
+                description="Oat milk alternative",
+            )
+        )
+
+        self.assertEqual(
+            coordinator.client.calls,
+            [
+                (
+                    "patch_item",
+                    "list-1",
+                    "item-1",
+                    "Milk",
+                    "Oat milk alternative",
+                )
+            ],
+        )
+        self.assertEqual(coordinator.refresh_calls, 1)
+
+    async def test_update_todo_item_clears_description(self) -> None:
+        """Description can be cleared without renaming the item."""
+        coordinator = self._build_coordinator()
+        entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
+
+        await entity.async_update_todo_item(
+            FakeTodoItem(
+                uid="item-1",
+                description=None,
+            )
+        )
+
+        self.assertEqual(
+            coordinator.client.calls,
+            [
+                ("patch_item", "list-1", "item-1", "Milk", None),
             ],
         )
         self.assertEqual(coordinator.refresh_calls, 1)
@@ -296,6 +389,7 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
             FakeTodoItem(
                 uid="item-1",
                 summary="Milk",
+                description="2% fat",
                 status=FakeTodoItemStatus.NEEDS_ACTION,
             )
         )
@@ -321,12 +415,12 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(coordinator.client.calls, [])
         self.assertEqual(coordinator.refresh_calls, 0)
 
-    async def test_delete_todo_item_deletes_all_uids_then_refreshes(self) -> None:
+    async def test_delete_todo_items_deletes_all_uids_then_refreshes(self) -> None:
         """Deleting items should call the API once per uid, then refresh."""
         coordinator = self._build_coordinator()
         entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
 
-        await entity.async_delete_todo_item(["item-1", "item-2"])
+        await entity.async_delete_todo_items(["item-1", "item-2"])
 
         self.assertEqual(
             coordinator.client.calls,
@@ -337,7 +431,7 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(coordinator.refresh_calls, 1)
 
-    async def test_delete_todo_item_raises_ha_error_on_api_failure(self) -> None:
+    async def test_delete_todo_items_raises_ha_error_on_api_failure(self) -> None:
         """Delete failures should surface as HomeAssistantError and skip refresh."""
         from custom_components.endgame_grocery.api import EndgameConnectionError
 
@@ -347,7 +441,7 @@ class TestEndgameGroceryTodo(unittest.IsolatedAsyncioTestCase):
 
         with self.assertLogs("custom_components.endgame_grocery.todo", level="ERROR") as logs:
             with self.assertRaises(FakeHomeAssistantError):
-                await entity.async_delete_todo_item(["item-1"])
+                await entity.async_delete_todo_items(["item-1"])
 
         self.assertIn("Failed to delete item(s) from list list-1", logs.output[0])
         self.assertEqual(coordinator.refresh_calls, 0)

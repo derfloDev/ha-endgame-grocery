@@ -1,144 +1,168 @@
-# Plan
+# PLAN
 
 Status: **ready_for_implement**
 
-Goal: fix the `todo/remove_item` "unknown error" in Home Assistant when deleting a grocery item.
+---
 
-## Root Cause
+## Task T-001 — Fix HA todo delete method name (done)
 
-`async_delete_todo_item` in `todo.py` has no exception handling.
-Any `EndgameApiError` (e.g. 404 if the item was already removed, or a network blip) propagates
-unhandled to HA, which shows "unknown error" instead of a meaningful message.
+See previous HANDOFF entries. Implemented and ready to commit.
 
-Secondary hardening: `_request` in `api.py` calls `response.json()` on every non-204 success
-response. A 200 with an empty body (some API variants) raises `ValueError`/`ContentTypeError` that
-would escape the existing `aiohttp.ClientError` guard and reach HA as another "unknown error".
+---
 
-## Scope
+## Task T-002 — Item description support
 
-| # | File | Change |
-|---|------|--------|
-| 1 | `custom_components/endgame_grocery/todo.py` | Add `HomeAssistantError` import; add `EndgameApiError` import; wrap the delete loop in `try/except EndgameApiError` → log + raise `HomeAssistantError` |
-| 2 | `custom_components/endgame_grocery/api.py` | Replace `return await response.json()` with `return await response.json(content_type=None)` inside a `try/except ValueError` that returns `None` for empty/non-JSON bodies |
-| 3 | `tests/test_todo.py` | Add `FakeHomeAssistantError`; add `homeassistant.exceptions` to the mock dict; add test `test_delete_todo_item_raises_ha_error_on_api_failure` |
-| 4 | `tests/test_api.py` | Add test `test_delete_200_empty_body_returns_none` — 200 with empty body should return `None`, not raise |
+### Context
 
-## Acceptance Criteria
+The Endgame API now returns an optional `description` field on every `Item` object
+(see `v1.yaml` → `components/schemas/Item`). The `POST` and `PATCH` item endpoints
+also accept `description`. HA's `TodoListEntity` supports a matching `description`
+field on `TodoItem` and the `SET_DESCRIPTION_ON_ITEM` feature flag.
 
-- `async_delete_todo_item` raises `HomeAssistantError` (not a raw `EndgameApiError`) when the API
-  call fails, and logs the failure at `ERROR` level via `_LOGGER.exception`.
-- `_request` returns `None` for a 200 response with an empty body on DELETE instead of raising.
-- All existing tests continue to pass.
-- Two new tests (one per layer) verify the fixed behaviour.
+### Acceptance Criteria
 
-## Implementation Steps
+1. `todo_items` maps `item["description"]` (may be `None`) to `TodoItem.description`.
+2. `_attr_supported_features` includes `TodoListEntityFeature.SET_DESCRIPTION_ON_ITEM`.
+3. `async_create_todo_item` passes `item.description` to the API.
+4. `async_update_todo_item` issues a single combined PATCH when name **or** description
+   changes; the call includes the effective value of both fields.
+5. Description can be cleared (set to `None`) via an update without also changing the name.
+6. All unit tests pass; `py_compile` reports no errors.
 
-### Step 1 — `api.py`: harden `_request` for empty-body 2xx
+### Design Decisions
 
-Replace:
-```python
-response.raise_for_status()
-return await response.json()
-```
-With:
-```python
-response.raise_for_status()
-try:
-    return await response.json(content_type=None)
-except ValueError:
-    return None
-```
+- **Sentinel for `patch_item`:** A module-level `_UNSET = object()` sentinel in `api.py`
+  lets callers omit description from the PATCH body entirely (backward-compatible default)
+  while still allowing an explicit `description=None` to send `null` and clear the field.
+- **Single PATCH call:** Whenever name OR description changes, one PATCH is issued carrying
+  the effective name (updated or current) and the new description value. No separate
+  description-only call.
 
-`content_type=None` skips aiohttp's Content-Type check; `ValueError` covers
-`json.JSONDecodeError` for empty or non-JSON bodies.
+### Implementation Steps (TDD order)
 
-### Step 2 — `todo.py`: add imports
+#### Step 1 — `tests/test_api.py` — extend coverage
 
-Add to the `homeassistant` import block:
-```python
-from homeassistant.exceptions import HomeAssistantError
-```
+Add or update tests for:
+- `patch_item` with description provided → body contains `description`
+- `patch_item` without description → body does NOT contain `description` key
+- `patch_item` with `description=None` → body contains `"description": null`
+- `create_item` with description → body contains `description`
+- `create_item` without description → body does NOT contain `description` key
 
-Add to the `.api` import (TYPE_CHECKING guard is already there; add a runtime import):
-```python
-from .api import EndgameApiError
-```
-
-### Step 3 — `todo.py`: wrap delete loop
-
-Replace the body of `async_delete_todo_item`:
-```python
-async def async_delete_todo_item(self, uids: list[str]) -> None:
-    """Delete one or more list items and refresh coordinator data."""
-    try:
-        for uid in uids:
-            await self.coordinator.client.delete_item(self._list_id, uid)
-    except EndgameApiError as err:
-        _LOGGER.exception(
-            "Failed to delete item(s) from list %s: %s",
-            self._list_id,
-            err,
-        )
-        raise HomeAssistantError(
-            f"Could not delete item from list {self._list_id}: {err}"
-        ) from err
-    await self.coordinator.async_request_refresh()
-```
-
-### Step 4 — `tests/test_todo.py`: extend fake HA modules and add failure test
-
-1. Add `class FakeHomeAssistantError(Exception): ...` near the other fake classes.
-2. Add `"homeassistant.exceptions": types.SimpleNamespace(HomeAssistantError=FakeHomeAssistantError)` to the `patch.dict` in `setUpClass`.
-3. Add a `FakeClientWithError` helper (or re-use `FakeClient` with a configurable raise).
-4. Add test:
+#### Step 2 — `api.py` — add sentinel and extend signatures
 
 ```python
-async def test_delete_todo_item_raises_ha_error_on_api_failure(self) -> None:
-    """An API error during delete should surface as HomeAssistantError."""
-    from custom_components.endgame_grocery.api import EndgameConnectionError
-
-    coordinator = self._build_coordinator()
-    coordinator.client.raise_on_delete = EndgameConnectionError("timeout")
-    entity = self.todo.EndgameGroceryTodoListEntity(coordinator, "list-1")
-
-    with self.assertRaises(FakeHomeAssistantError):
-        await entity.async_delete_todo_item(["item-1"])
-
-    self.assertEqual(coordinator.refresh_calls, 0)
+# Module level
+_UNSET = object()
 ```
 
-Extend `FakeClient.delete_item` to honour an optional `raise_on_delete` attribute:
+`create_item`:
 ```python
-async def delete_item(self, list_id: str, item_id: str) -> None:
-    if raise := getattr(self, "raise_on_delete", None):
-        raise raise_on_delete  # noqa: F821  (walrus pattern)
-    self.calls.append(("delete_item", list_id, item_id))
+async def create_item(self, list_id: str, name: str, *, description: str | None = None) -> dict[str, Any]:
+    body: dict[str, Any] = {"name": name}
+    if description is not None:
+        body["description"] = description
+    data = await self._request("POST", f"/lists/{list_id}/items", json=body)
+    return data["item"]
 ```
 
-### Step 5 — `tests/test_api.py`: add empty-body test
-
+`patch_item`:
 ```python
-async def test_delete_200_empty_body_returns_none(self) -> None:
-    """A 200 response with no JSON body should return None, not raise."""
-    # FakeResponse.json() raises ValueError when payload is None and accessed raw
-    # We simulate this by making json() raise ValueError
-    session = FakeSession([FakeResponse(status=200, payload=None)])
-    # patch json() to raise ValueError (empty body)
-    ...
-    result = await client.delete_item("list-1", "item-4")
-    self.assertIsNone(result)
+async def patch_item(
+    self,
+    list_id: str,
+    item_id: str,
+    name: str,
+    *,
+    description: str | None = _UNSET,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    body: dict[str, Any] = {"name": name}
+    if description is not _UNSET:
+        body["description"] = description
+    data = await self._request("PATCH", f"/lists/{list_id}/items/{item_id}", json=body)
+    return data["item"]
 ```
 
-Note: because `FakeResponse.json()` returns `{}` by default (not empty), the implementer must
-adjust `FakeResponse` so that passing `payload=None` causes `json()` to raise `ValueError`, or
-add a new `raise_json` flag. Either approach is acceptable as long as the test exercises the new
-`except ValueError` branch in `_request`.
+#### Step 3 — `tests/test_todo.py` — extend coverage
 
-## Validation
+- Add `SET_DESCRIPTION_ON_ITEM = 8` to `FakeTodoListEntityFeature`.
+- Add `description` field to `FakeTodoItem` (default `None`).
+- Update `FakeClient.create_item` and `patch_item` signatures to accept `description`.
+- Update `test_entity_exposes_ids_features_and_device_info` to assert `SET_DESCRIPTION_ON_ITEM` in supported features.
+- Update `test_todo_items_map_open_and_done_statuses` to assert `description` is mapped.
+- Update `test_create_todo_item_calls_api_and_refresh` to pass and assert `description`.
+- Add `test_create_todo_item_with_description` — creates item with description, assert call includes it.
+- Update `test_update_todo_item_patches_and_toggles_sequentially` — patch call now includes `description` kwarg.
+- Add `test_update_todo_item_patches_description_only` — only description changed, PATCH issued with current name and new description.
+- Add `test_update_todo_item_clears_description` — description changed to None, PATCH issued with `description=None`.
+- Update `test_update_todo_item_skips_unchanged_fields` — no PATCH when neither name nor description changed.
+- Update coordinator fixture data to include `"description"` on items (e.g. `"description": "2% fat"` on item-1, `None` on item-2).
+
+#### Step 4 — `todo.py` — wire up description
+
+`todo_items` property:
+```python
+TodoItem(
+    uid=item["id"],
+    summary=item["name"],
+    description=item.get("description"),
+    status=...,
+)
+```
+
+`_attr_supported_features`:
+```python
+_attr_supported_features = (
+    TodoListEntityFeature.CREATE_TODO_ITEM
+    | TodoListEntityFeature.UPDATE_TODO_ITEM
+    | TodoListEntityFeature.DELETE_TODO_ITEM
+    | TodoListEntityFeature.SET_DESCRIPTION_ON_ITEM
+)
+```
+
+`async_create_todo_item`:
+```python
+await self.coordinator.client.create_item(
+    self._list_id, item.summary, description=item.description
+)
+```
+
+`async_update_todo_item` — replace the name-only patch block with:
+```python
+current_desc = current.get("description")
+name_changed = item.summary is not None and item.summary != current["name"]
+desc_changed = item.description != current_desc
+
+if name_changed or desc_changed:
+    effective_name = item.summary if item.summary is not None else current["name"]
+    await self.coordinator.client.patch_item(
+        self._list_id,
+        item.uid,
+        effective_name,
+        description=item.description,
+    )
+```
+
+#### Step 5 — Validate
 
 ```
 python -m unittest discover -s tests -p "test_*.py"
 python -m py_compile custom_components/endgame_grocery/*.py
 ```
 
-Both commands must exit 0 before the task is marked `ready_for_review`.
+Both must exit 0.
+
+### Files to Change
+
+| File | Change |
+|------|--------|
+| `custom_components/endgame_grocery/api.py` | Add `_UNSET` sentinel; extend `create_item` and `patch_item` signatures |
+| `custom_components/endgame_grocery/todo.py` | Add `SET_DESCRIPTION_ON_ITEM` feature; map description in `todo_items`; pass description in create and combined-patch update |
+| `tests/test_api.py` | Tests for `patch_item` and `create_item` description behaviour |
+| `tests/test_todo.py` | Extend fake classes; add and update tests for description create/read/update/clear |
+
+### Out of Scope
+
+- Description on list objects (only items have description per the API spec)
+- Any UI / config-flow changes
+- Server-side changes

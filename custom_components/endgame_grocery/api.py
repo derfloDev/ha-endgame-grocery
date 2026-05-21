@@ -6,6 +6,8 @@ from typing import Any
 
 import aiohttp
 
+_UNSET = object()
+
 
 class EndgameApiError(Exception):
     """Base exception for all Endgame Grocery API errors."""
@@ -87,12 +89,21 @@ class EndgameGroceryApiClient:
         data = await self._request("GET", f"/lists/{list_id}/items")
         return data["items"]
 
-    async def create_item(self, list_id: str, name: str) -> dict[str, Any]:
+    async def create_item(
+        self,
+        list_id: str,
+        name: str,
+        *,
+        description: str | None = None,
+    ) -> dict[str, Any]:
         """Create a new grocery item in a list."""
+        body: dict[str, Any] = {"name": name}
+        if description is not None:
+            body["description"] = description
         data = await self._request(
             "POST",
             f"/lists/{list_id}/items",
-            json={"name": name},
+            json=body,
         )
         return data["item"]
 
@@ -109,12 +120,17 @@ class EndgameGroceryApiClient:
         list_id: str,
         item_id: str,
         name: str,
+        *,
+        description: str | None | object = _UNSET,
     ) -> dict[str, Any]:
-        """Rename a grocery item."""
+        """Rename a grocery item and optionally update its description."""
+        body: dict[str, Any] = {"name": name}
+        if description is not _UNSET:
+            body["description"] = description
         data = await self._request(
             "PATCH",
             f"/lists/{list_id}/items/{item_id}",
-            json={"name": name},
+            json=body,
         )
         return data["item"]
 

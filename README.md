@@ -20,7 +20,7 @@ Endgame Grocery connects an Endgame Grocery server to Home Assistant and exposes
 ## Features
 
 - One Home Assistant `todo` entity per Endgame Grocery list
-- Create, rename, complete, reopen, and delete grocery items from Home Assistant
+- Create, rename, describe, complete, reopen, and delete grocery items from Home Assistant
 - 60-second background refresh to keep Home Assistant in sync with the server
 - Config flow setup with live API credential validation
 - Works with the Lovelace Todo card and Home Assistant automations
@@ -67,7 +67,7 @@ Features: shared lists, dark Endgame theme, push notifications, offline support.
 
 ## Usage
 
-After setup, each Endgame Grocery list appears as its own Home Assistant `todo` entity named after the list. You can use those entities in the Todo dashboard card, service calls, automations, or scripts to create items, rename them, change completion state, and delete them.
+After setup, each Endgame Grocery list appears as its own Home Assistant `todo` entity named after the list. You can use those entities in the Todo dashboard card, service calls, automations, or scripts to create items, edit their descriptions, rename them, change completion state, and delete them.
 
 ## Troubleshooting
 

@@ -185,6 +185,92 @@ class TestEndgameGroceryApiClient(unittest.IsolatedAsyncioTestCase):
             ],
         )
 
+    async def test_create_item_includes_description_when_provided(self) -> None:
+        """Create requests should include description when the caller provides one."""
+        session = FakeSession([FakeResponse(status=200, payload={"item": {"id": "item-1"}})])
+        client = self.api.EndgameGroceryApiClient(
+            session,
+            "https://grocery.example.com",
+            "secret-key",
+        )
+
+        created = await client.create_item(
+            "list-1",
+            "Milk",
+            description="2% fat",
+        )
+
+        self.assertEqual(created, {"id": "item-1"})
+        self.assertEqual(
+            session.calls,
+            [
+                (
+                    "POST",
+                    "https://grocery.example.com/api/v1/lists/list-1/items",
+                    {"X-Api-Key": "secret-key", "Content-Type": "application/json"},
+                    {"name": "Milk", "description": "2% fat"},
+                )
+            ],
+        )
+
+    async def test_patch_item_includes_description_when_provided(self) -> None:
+        """Patch requests should include description when the caller provides one."""
+        session = FakeSession([FakeResponse(status=200, payload={"item": {"id": "item-1"}})])
+        client = self.api.EndgameGroceryApiClient(
+            session,
+            "https://grocery.example.com",
+            "secret-key",
+        )
+
+        patched = await client.patch_item(
+            "list-1",
+            "item-1",
+            "Oat Milk",
+            description="Barista",
+        )
+
+        self.assertEqual(patched, {"id": "item-1"})
+        self.assertEqual(
+            session.calls,
+            [
+                (
+                    "PATCH",
+                    "https://grocery.example.com/api/v1/lists/list-1/items/item-1",
+                    {"X-Api-Key": "secret-key", "Content-Type": "application/json"},
+                    {"name": "Oat Milk", "description": "Barista"},
+                )
+            ],
+        )
+
+    async def test_patch_item_can_clear_description(self) -> None:
+        """Patch requests should send null when the caller clears description."""
+        session = FakeSession([FakeResponse(status=200, payload={"item": {"id": "item-1"}})])
+        client = self.api.EndgameGroceryApiClient(
+            session,
+            "https://grocery.example.com",
+            "secret-key",
+        )
+
+        patched = await client.patch_item(
+            "list-1",
+            "item-1",
+            "Milk",
+            description=None,
+        )
+
+        self.assertEqual(patched, {"id": "item-1"})
+        self.assertEqual(
+            session.calls,
+            [
+                (
+                    "PATCH",
+                    "https://grocery.example.com/api/v1/lists/list-1/items/item-1",
+                    {"X-Api-Key": "secret-key", "Content-Type": "application/json"},
+                    {"name": "Milk", "description": None},
+                )
+            ],
+        )
+
     async def test_401_maps_to_auth_error(self) -> None:
         """HTTP 401 should surface as EndgameAuthError."""
         session = FakeSession([FakeResponse(status=401)])
