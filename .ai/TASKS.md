@@ -20,4 +20,4 @@ Command expectations:
 
 | Task ID | Scope | Status | Acceptance Criteria | Evidence | Next Role |
 | --- | --- | --- | --- | --- | --- |
-| T-001 | Fix `todo/remove_item` "unknown error" — add exception handling in `async_delete_todo_item` and harden `_request` for empty-body 2xx | done | (1) `async_delete_todo_item` raises `HomeAssistantError` on `EndgameApiError` and logs at ERROR; (2) `_request` returns `None` for 200 with empty body; (3) all existing tests pass; (4) two new tests cover the fixed paths | `python -m unittest discover -s tests -p "test_*.py"` passed; `python -m py_compile` passed for `custom_components/endgame_grocery/*.py` | none |
+| T-001 | replace with task scope | in_planning | replace with measurable acceptance criteria | n/a | planner |
