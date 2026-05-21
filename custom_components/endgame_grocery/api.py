@@ -48,7 +48,7 @@ class EndgameGroceryApiClient:
         *,
         json: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
-        """Send an API request and map transport/HTTP errors to domain errors."""
+        """Send an API request and tolerate successful responses without JSON bodies."""
         url = f"{self._base_url}/api/v1{path}"
 
         try:
@@ -68,7 +68,10 @@ class EndgameGroceryApiClient:
                     return None
 
                 response.raise_for_status()
-                return await response.json()
+                try:
+                    return await response.json(content_type=None)
+                except ValueError:
+                    return None
         except EndgameApiError:
             raise
         except aiohttp.ClientError as err:

@@ -43,9 +43,12 @@ class FakeResponse:
         if self._raise_error is not None:
             raise self._raise_error
 
-    async def json(self) -> dict:
+    async def json(self, content_type: str | None = "application/json") -> dict:
         """Return the JSON payload for successful requests."""
-        return self._payload or {}
+        del content_type
+        if self._payload is None:
+            raise ValueError("Response body is empty")
+        return self._payload
 
 
 class FakeSession:
@@ -245,6 +248,19 @@ class TestEndgameGroceryApiClient(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(self.api.EndgameConnectionError):
             await client.get_lists()
+
+    async def test_delete_200_empty_body_returns_none(self) -> None:
+        """A 200 DELETE response with no JSON body should return None."""
+        session = FakeSession([FakeResponse(status=200, payload=None)])
+        client = self.api.EndgameGroceryApiClient(
+            session,
+            "https://grocery.example.com",
+            "secret-key",
+        )
+
+        deleted = await client.delete_item("list-1", "item-4")
+
+        self.assertIsNone(deleted)
 
 
 if __name__ == "__main__":

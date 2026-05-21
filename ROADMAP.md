@@ -1,29 +1,11 @@
 # ROADMAP
 
-Goal: define and deliver the scope for this cycle.
-
-Delete any unused example sections below. Only the Goal and one concrete priority are required.
+Goal: fix the "unknown error" that appears in Home Assistant when a user deletes a grocery item via `todo/remove_item`.
 
 ## Priority 1
 
-Objective: replace with objective.
+Objective: make `async_delete_todo_item` fail-safe and surfaceable.
 
-- Replace with planned outcome.
-
-## Examples
-
-These example sections are optional illustrations, not required structure.
-
-<!-- Example: remove or replace this section -->
-## Priority 2
-
-Objective: optional second objective.
-
-- Replace with optional planned outcome.
-
-<!-- Example: remove or replace this section -->
-## Priority 3
-
-Objective: optional third objective.
-
-- Replace with optional planned outcome.
+- `async_delete_todo_item` catches `EndgameApiError`, logs the failure, and raises `HomeAssistantError` so HA can display a meaningful message instead of "unknown error".
+- `_request` in the API client handles 2xx responses that carry no JSON body (e.g. an empty 200) without raising, making the delete path robust against minor API variations.
+- New unit tests cover the exception-path for delete (both the todo entity and the API client layer).

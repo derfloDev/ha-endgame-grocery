@@ -75,6 +75,7 @@ After setup, each Endgame Grocery list appears as its own Home Assistant `todo` 
 | --- | --- | --- |
 | `invalid_auth` during setup | Wrong or expired API key | Generate a new API key in Endgame Grocery settings and try again |
 | `cannot_connect` during setup | Wrong base URL or the server is unreachable | Check the URL, TLS settings, and network reachability from Home Assistant |
+| `Could not delete item from list ...` when removing a todo item | The server rejected the delete request or the item disappeared before Home Assistant refreshed | Refresh the list and retry. If it keeps happening, verify the item still exists on the Endgame Grocery server and check the integration logs for the underlying API error |
 | New lists do not appear after they are created on the server | Todo entities are created when the integration is set up | Reload the integration from Devices & Services |
 
 ## Release and versioning
