@@ -5,21 +5,40 @@
         "title": "Connect to Endgame Grocery",
         "data": {
           "base_url": "Base URL",
-          "api_key": "API Key"
+          "api_key": "API Key",
+          "scan_interval": "Scan interval"
         },
         "data_description": {
           "base_url": "The base URL of your Endgame Grocery server, e.g. https://grocery.example.com",
-          "api_key": "Your personal API key from the Endgame Grocery settings page"
+          "api_key": "Your personal API key from the Endgame Grocery settings page",
+          "scan_interval": "Refresh interval in seconds between Home Assistant syncs"
         }
       }
     },
     "error": {
       "cannot_connect": "Cannot connect to the server. Check the URL and try again.",
       "invalid_auth": "Invalid API key. Generate a new one in the Endgame Grocery settings.",
+      "invalid_scan_interval": "Scan interval must be between 10 and 600 seconds.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
       "already_configured": "This Endgame Grocery server is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Update Endgame Grocery options",
+        "data": {
+          "scan_interval": "Scan interval"
+        },
+        "data_description": {
+          "scan_interval": "Refresh interval in seconds between Home Assistant syncs"
+        }
+      }
+    },
+    "error": {
+      "invalid_scan_interval": "Scan interval must be between 10 and 600 seconds."
     }
   }
 }

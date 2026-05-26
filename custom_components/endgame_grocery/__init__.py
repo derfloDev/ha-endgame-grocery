@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from typing import Any
 
 try:
@@ -40,7 +41,14 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local test fall
         """Fallback aiohttp session getter for local test imports."""
         raise RuntimeError("Home Assistant runtime is not available")
 
-from .const import CONF_API_KEY, CONF_BASE_URL, DEFAULT_SCAN_INTERVAL, DOMAIN, PLATFORMS
+from .const import (
+    CONF_API_KEY,
+    CONF_BASE_URL,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL_SECONDS,
+    DOMAIN,
+    PLATFORMS,
+)
 
 try:
     from .api import EndgameAuthError, EndgameConnectionError, EndgameGroceryApiClient
@@ -73,8 +81,17 @@ async def async_setup_entry(
     coordinator = EndgameGroceryCoordinator(hass, client, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
+    entry.add_update_listener(async_reload_entry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def async_reload_entry(
+    hass: HomeAssistant,
+    entry: EndgameGroceryConfigEntry,
+) -> None:
+    """Reload the config entry when options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(
@@ -97,11 +114,15 @@ class EndgameGroceryCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]
         entry: EndgameGroceryConfigEntry,
     ) -> None:
         """Initialize the coordinator."""
+        raw_scan_interval = entry.options.get(
+            CONF_SCAN_INTERVAL,
+            entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL_SECONDS),
+        )
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=DEFAULT_SCAN_INTERVAL,
+            update_interval=timedelta(seconds=int(raw_scan_interval)),
             config_entry=entry,
         )
         self.client = client

@@ -6,6 +6,7 @@ import importlib
 import sys
 import types
 import unittest
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -17,14 +18,27 @@ if str(REPO_ROOT) not in sys.path:
 class FakeConfigEntry:
     """Minimal config entry used for coordinator and setup tests."""
 
-    def __init__(self, data: dict[str, str], entry_id: str = "entry-1") -> None:
+    def __init__(
+        self,
+        data: dict[str, str | int],
+        entry_id: str = "entry-1",
+        *,
+        options: dict[str, int] | None = None,
+    ) -> None:
         self.data = data
+        self.options = options or {}
         self.entry_id = entry_id
         self.runtime_data = None
+        self.update_listeners: list[object] = []
 
     def __class_getitem__(cls, item):
         """Allow generic-style use in type aliases."""
         return cls
+
+    def add_update_listener(self, listener: object) -> object:
+        """Record registered update listeners."""
+        self.update_listeners.append(listener)
+        return listener
 
 
 class FakeConfigEntriesManager:
@@ -33,6 +47,7 @@ class FakeConfigEntriesManager:
     def __init__(self) -> None:
         self.forward_calls: list[tuple[FakeConfigEntry, list[str]]] = []
         self.unload_calls: list[tuple[FakeConfigEntry, list[str]]] = []
+        self.reload_calls: list[str] = []
 
     async def async_forward_entry_setups(
         self,
@@ -49,6 +64,11 @@ class FakeConfigEntriesManager:
     ) -> bool:
         """Record unload requests and report success."""
         self.unload_calls.append((entry, platforms))
+        return True
+
+    async def async_reload(self, entry_id: str) -> bool:
+        """Record reload requests and report success."""
+        self.reload_calls.append(entry_id)
         return True
 
 
@@ -125,7 +145,7 @@ class FakeApiClient:
 
 
 class TestEndgameGroceryInit(unittest.IsolatedAsyncioTestCase):
-    """Verify T-004 entry setup and coordinator behavior."""
+    """Verify T-002 entry setup and coordinator behavior."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -199,6 +219,7 @@ class TestEndgameGroceryInit(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result)
         self.assertIsNotNone(entry.runtime_data)
         self.assertEqual(entry.runtime_data.first_refresh_calls, 1)
+        self.assertEqual(entry.update_listeners, [self.integration.async_reload_entry])
         self.assertEqual(
             hass.config_entries.forward_calls,
             [(entry, ["todo"])],
@@ -221,6 +242,18 @@ class TestEndgameGroceryInit(unittest.IsolatedAsyncioTestCase):
             hass.config_entries.unload_calls,
             [(entry, ["todo"])],
         )
+
+    async def test_reload_entry_requests_config_entry_reload(self) -> None:
+        """The update listener helper should reload the config entry."""
+        hass = FakeHomeAssistant()
+        entry = FakeConfigEntry(
+            {"base_url": "https://grocery.example.com", "api_key": "secret-key"},
+            entry_id="entry-42",
+        )
+
+        await self.integration.async_reload_entry(hass, entry)
+
+        self.assertEqual(hass.config_entries.reload_calls, ["entry-42"])
 
     async def test_coordinator_updates_all_lists_and_items(self) -> None:
         """The coordinator should aggregate each list with its fetched items."""
@@ -257,6 +290,47 @@ class TestEndgameGroceryInit(unittest.IsolatedAsyncioTestCase):
             },
         )
         self.assertEqual(client.get_items_calls, ["list-1", "list-2"])
+
+    async def test_coordinator_uses_scan_interval_from_entry_options(self) -> None:
+        """Entry options should override the coordinator refresh interval."""
+        hass = FakeHomeAssistant()
+        entry = FakeConfigEntry(
+            {"base_url": "https://grocery.example.com", "api_key": "secret-key"},
+            options={"scan_interval": 120},
+        )
+        client = FakeApiClient(object(), "https://grocery.example.com", "secret-key")
+
+        coordinator = self.integration.EndgameGroceryCoordinator(hass, client, entry)
+
+        self.assertEqual(coordinator.update_interval, timedelta(seconds=120))
+
+    async def test_coordinator_falls_back_to_scan_interval_in_entry_data(self) -> None:
+        """Entry data should provide the refresh interval when options are absent."""
+        hass = FakeHomeAssistant()
+        entry = FakeConfigEntry(
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 90,
+            }
+        )
+        client = FakeApiClient(object(), "https://grocery.example.com", "secret-key")
+
+        coordinator = self.integration.EndgameGroceryCoordinator(hass, client, entry)
+
+        self.assertEqual(coordinator.update_interval, timedelta(seconds=90))
+
+    async def test_coordinator_falls_back_to_default_scan_interval(self) -> None:
+        """The default interval should be used when no scan interval is stored."""
+        hass = FakeHomeAssistant()
+        entry = FakeConfigEntry(
+            {"base_url": "https://grocery.example.com", "api_key": "secret-key"}
+        )
+        client = FakeApiClient(object(), "https://grocery.example.com", "secret-key")
+
+        coordinator = self.integration.EndgameGroceryCoordinator(hass, client, entry)
+
+        self.assertEqual(coordinator.update_interval, timedelta(seconds=60))
 
     async def test_coordinator_maps_auth_errors_to_config_entry_auth_failed(
         self,

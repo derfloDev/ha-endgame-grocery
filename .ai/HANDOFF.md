@@ -23,109 +23,123 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 
 ---
 
-### T-001 — plan — 2026-05-21T00:00:00Z
+### T-001/T-002 — plan — 2026-05-22T00:00:00Z
 
 | Field | Value |
 |-------|-------|
 | Agent | claude |
-| Summary | Identified wrong HA todo delete method name (`async_delete_todo_item` singular vs required `async_delete_todo_items` plural); wrote plan and task. |
-| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Summary | Planned configurable scan interval feature: config flow extension with options flow, coordinator wiring, and full test coverage across two sequential tasks |
+| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md` |
 | Next Role | implement |
 
 ---
 
-### T-001 — implement — 2026-05-21T16:05:40Z
-
-| Field | Value |
-|-------|-------|
-| Agent | codex |
-| Summary | Renamed the todo delete handler to Home Assistant's required plural method name and updated the matching tests. |
-| Files Changed | `custom_components/endgame_grocery/todo.py`, `tests/test_todo.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
-| Validation | `python -m unittest discover -s tests -p "test_*.py"` OK; `Get-ChildItem custom_components/endgame_grocery -Filter *.py | ForEach-Object { python -m py_compile $_.FullName }` OK |
-| Commit | `fix(todo): restore item deletion from Home Assistant` |
-| Next Role | review |
-
----
-
-### T-001 — review — 2026-05-21T16:30:00Z
+### T-002 — review — 2026-05-26T09:55:00Z
 
 | Field | Value |
 |-------|-------|
 | Agent | claude |
-| Summary | Verified rename of `async_delete_todo_item` → `async_delete_todo_items` in `todo.py` and two test call sites; all 38 unit tests pass and all modules compile cleanly. |
-| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Summary | T-002 review passed first round: coordinator interval resolution, update listener registration, async_reload_entry helper, and all new tests are correct and complete |
 | Verdict | PASS |
 | Blocking Findings | none |
 | Next Role | implement |
 
 ---
 
-### T-002 — plan — 2026-05-21T00:00:00Z
+### T-001 — review (round 2) — 2026-05-26T08:50:00Z
 
 | Field | Value |
 |-------|-------|
 | Agent | claude |
-| Summary | Planned description field support: `_UNSET` sentinel in `api.py`, combined PATCH call in `todo.py`, `SET_DESCRIPTION_ON_ITEM` feature flag, and full test coverage for create/read/update/clear. |
-| Files Changed | `ROADMAP.md`, `.ai/PLAN.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
-| Next Role | implement |
-
----
-
-### T-001 — commit_task — 2026-05-21T16:26:10Z
-
-| Field | Value |
-|-------|-------|
-| Agent | codex |
-| Summary | Marked T-001 done and prepared the reviewed deletion fix for commit. |
-| Files Changed | `.ai/TASKS.md`, `.ai/HANDOFF.md`, `.ai/PLAN.md`, `.ai/REVIEW.md`, `ROADMAP.md`, `custom_components/endgame_grocery/todo.py`, `tests/test_todo.py` |
-| Commit | `fix(todo): restore item deletion from Home Assistant` |
-| Next Role | none |
-
----
-
-### T-002 — implement — 2026-05-21T16:38:13Z
-
-| Field | Value |
-|-------|-------|
-| Agent | codex |
-| Summary | Added grocery item description support across the API client, todo entity, tests, and README usage documentation. |
-| Files Changed | `README.md`, `custom_components/endgame_grocery/api.py`, `custom_components/endgame_grocery/todo.py`, `tests/test_api.py`, `tests/test_todo.py`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
-| Validation | `python -m unittest discover -s tests -p "test_*.py"` OK; `Get-ChildItem custom_components/endgame_grocery -Filter *.py | ForEach-Object { python -m py_compile $_.FullName }` OK |
-| Commit | `feat(todo): support item descriptions in Home Assistant` |
-| Next Role | review |
-
----
-
-### T-002 — review — 2026-05-21T16:45:00Z
-
-| Field | Value |
-|-------|-------|
-| Agent | claude |
-| Summary | Verified description field support across `api.py`, `todo.py`, `test_api.py`, `test_todo.py`, and `README.md`; all 44 unit tests pass and all modules compile cleanly. |
-| Files Changed | `.ai/REVIEW.md`, `.ai/TASKS.md`, `.ai/HANDOFF.md` |
+| Summary | Round 2 review passed: `options.error.invalid_scan_interval` correctly added to strings.json and en.json; new options flow error path test confirmed; all 49 tests pass |
 | Verdict | PASS |
 | Blocking Findings | none |
 | Next Role | implement |
 
 ---
 
-### T-002 — commit_task — 2026-05-21T16:44:24Z
+### T-001 — review — 2026-05-26T00:00:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | Reviewed T-001 config flow and strings implementation; found missing `options.error.invalid_scan_interval` section in strings.json and en.json |
+| Verdict | FAIL |
+| Blocking Findings | 1. `options.error.invalid_scan_interval` missing from strings.json and translations/en.json — HA options flow cannot localize the validation error for out-of-range scan intervals |
+| Next Role | implement |
+
+---
+
+### T-001 — implement — 2026-05-22T13:16:52Z
 
 | Field | Value |
 |-------|-------|
 | Agent | codex |
-| Summary | Marked T-002 done and prepared the reviewed description-support changes for commit. |
-| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/api.py`, `custom_components/endgame_grocery/todo.py`, `tests/test_api.py`, `tests/test_todo.py` |
-| Commit | `feat(todo): support item descriptions in Home Assistant` |
+| Summary | Added configurable scan interval to the setup form and options flow, updated UI strings, and documented the new configuration path |
+| Files Changed | `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/config_flow.py`, `custom_components/endgame_grocery/const.py`, `custom_components/endgame_grocery/strings.json`, `custom_components/endgame_grocery/translations/en.json`, `tests/test_config_flow.py` |
+| Validation | `python -m py_compile custom_components/endgame_grocery/const.py` OK; `python -m py_compile custom_components/endgame_grocery/config_flow.py` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(config): add configurable scan interval to setup and options flow` |
+| Next Role | review |
+
+---
+
+### T-001 — implement — 2026-05-26T08:39:31Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Addressed the review finding by adding the missing options-flow error localization and a regression test for invalid options input |
+| Files Changed | `.ai/TASKS.md`, `custom_components/endgame_grocery/strings.json`, `custom_components/endgame_grocery/translations/en.json`, `tests/test_config_flow.py` |
+| Validation | `python -m py_compile custom_components/endgame_grocery/const.py` OK; `python -m py_compile custom_components/endgame_grocery/config_flow.py` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(config): add configurable scan interval to setup and options flow` |
+| Next Role | review |
+
+---
+
+### T-001 — implement — 2026-05-26T09:20:35Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-001 after review approval, marked the task done, and created the release-note-ready task commit |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/PLAN.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `ROADMAP.md`, `custom_components/endgame_grocery/config_flow.py`, `custom_components/endgame_grocery/const.py`, `custom_components/endgame_grocery/strings.json`, `custom_components/endgame_grocery/translations/en.json`, `tests/test_config_flow.py` |
+| Validation | reused reviewer-approved validation recorded on T-001: `python -m py_compile custom_components/endgame_grocery/const.py` OK; `python -m py_compile custom_components/endgame_grocery/config_flow.py` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(config): add configurable scan interval to setup and options flow` |
 | Next Role | none |
 
 ---
 
-### Cycle closed — unversioned — 2026-05-21T16:45:58Z
+### T-002 — implement — 2026-05-26T09:53:46Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Wired scan interval resolution into the update coordinator, registered automatic reload on options changes, expanded tests, and documented that saved interval changes apply immediately |
+| Files Changed | `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/__init__.py`, `tests/test_config_flow.py`, `tests/test_init.py` |
+| Validation | `python -m py_compile custom_components/endgame_grocery/__init__.py` OK; `python -m unittest tests.test_init` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(coordinator): wire scan interval from options/data into update coordinator` |
+| Next Role | review |
+
+---
+
+### T-002 — implement — 2026-05-26T10:09:37Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-002 after review approval, marked the task done, and created the task commit for coordinator scan interval wiring |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/__init__.py`, `tests/test_config_flow.py`, `tests/test_init.py` |
+| Validation | reused reviewer-approved validation recorded on T-002: `python -m py_compile custom_components/endgame_grocery/__init__.py` OK; `python -m unittest tests.test_init` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(coordinator): wire scan interval from options/data into update coordinator` |
+| Next Role | none |
+
+---
+
+### Cycle closed — 0.3.0 — 2026-05-26T10:30:17Z
 
 | Field | Value |
 |-------|-------|
 | Summary | All tasks done; cycle closed |
-| Version | unversioned |
+| Version | 0.3.0 |
 
 ---

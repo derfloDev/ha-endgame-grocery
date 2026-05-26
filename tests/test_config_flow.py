@@ -14,6 +14,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+UNSET = object()
+
 
 class AbortFlowResult(Exception):
     """Exception used by the fake ConfigFlow to simulate HA abort handling."""
@@ -23,8 +25,26 @@ class AbortFlowResult(Exception):
         self.result = result
 
 
-class FakeRequiredKey(str):
+class FakeInvalid(Exception):
+    """Exception used by the fake voluptuous validators."""
+
+
+class FakeRequiredKey:
     """Marker type for voluptuous required keys."""
+
+    def __init__(self, key: str, default: object = UNSET) -> None:
+        self.key = key
+        self.default = default
+
+    def __hash__(self) -> int:
+        return hash((self.key, self.default))
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, FakeRequiredKey)
+            and self.key == other.key
+            and self.default == other.default
+        )
 
 
 class FakeSchema:
@@ -34,7 +54,37 @@ class FakeSchema:
         self.schema = schema
 
 
-class FakeConfigFlow:
+class FakeFlowBase:
+    """Shared fake flow behavior for config and options flows."""
+
+    def async_create_entry(
+        self,
+        *,
+        title: str,
+        data: dict[str, object],
+    ) -> dict[str, object]:
+        """Return a Home Assistant-style create entry result."""
+        if hasattr(self, "config_entry"):
+            self.config_entry.options = data
+        return {"type": "create_entry", "title": title, "data": data}
+
+    def async_show_form(
+        self,
+        *,
+        step_id: str,
+        data_schema: FakeSchema,
+        errors: dict[str, str],
+    ) -> dict[str, object]:
+        """Return a Home Assistant-style form result."""
+        return {
+            "type": "form",
+            "step_id": step_id,
+            "data_schema": data_schema,
+            "errors": errors,
+        }
+
+
+class FakeConfigFlow(FakeFlowBase):
     """Minimal Home Assistant ConfigFlow base class for unit tests."""
 
     def __init_subclass__(cls, *, domain: str | None = None, **kwargs) -> None:
@@ -59,29 +109,22 @@ class FakeConfigFlow:
         """Return a Home Assistant-style abort result."""
         return {"type": "abort", "reason": reason}
 
-    def async_create_entry(
-        self,
-        *,
-        title: str,
-        data: dict[str, str],
-    ) -> dict[str, object]:
-        """Return a Home Assistant-style create entry result."""
-        return {"type": "create_entry", "title": title, "data": data}
 
-    def async_show_form(
+class FakeOptionsFlow(FakeFlowBase):
+    """Minimal Home Assistant OptionsFlow base class for unit tests."""
+
+
+class FakeConfigEntry:
+    """Small config entry stub for options flow tests."""
+
+    def __init__(
         self,
         *,
-        step_id: str,
-        data_schema: FakeSchema,
-        errors: dict[str, str],
-    ) -> dict[str, object]:
-        """Return a Home Assistant-style form result."""
-        return {
-            "type": "form",
-            "step_id": step_id,
-            "data_schema": data_schema,
-            "errors": errors,
-        }
+        data: dict[str, object] | None = None,
+        options: dict[str, object] | None = None,
+    ) -> None:
+        self.data = data or {}
+        self.options = options or {}
 
 
 class FakeApiClient:
@@ -104,20 +147,68 @@ class FakeApiClient:
         return self.__class__.response
 
 
+def fake_required(key: str, default: object = UNSET) -> FakeRequiredKey:
+    """Create a fake voluptuous required marker."""
+    return FakeRequiredKey(key, default)
+
+
+def fake_coerce(target_type: type[int]) -> object:
+    """Return a fake voluptuous coercion validator."""
+
+    def validator(value: object) -> int:
+        try:
+            return target_type(value)
+        except (TypeError, ValueError) as err:
+            raise FakeInvalid(str(err)) from err
+
+    return validator
+
+
+def fake_range(*, min: int | None = None, max: int | None = None) -> object:
+    """Return a fake voluptuous range validator."""
+
+    def validator(value: int) -> int:
+        if min is not None and value < min:
+            raise FakeInvalid(f"{value} is lower than {min}")
+        if max is not None and value > max:
+            raise FakeInvalid(f"{value} is higher than {max}")
+        return value
+
+    return validator
+
+
+def fake_all(*validators: object) -> object:
+    """Compose fake voluptuous validators."""
+
+    def validator(value: object) -> object:
+        result = value
+        for current in validators:
+            result = current(result)
+        return result
+
+    return validator
+
+
 class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
-    """Verify the T-003 config flow behavior and translation files."""
+    """Verify the T-001 config flow behavior and translation files."""
 
     @classmethod
     def setUpClass(cls) -> None:
         """Import the config flow module with fake HA dependencies."""
         fake_vol = types.SimpleNamespace(
-            Required=lambda key: FakeRequiredKey(key),
+            Required=fake_required,
             Schema=lambda schema: FakeSchema(schema),
+            All=fake_all,
+            Coerce=fake_coerce,
+            Range=fake_range,
+            Invalid=FakeInvalid,
         )
 
         fake_config_entries = types.SimpleNamespace(
             ConfigFlow=FakeConfigFlow,
             ConfigFlowResult=dict,
+            OptionsFlow=FakeOptionsFlow,
+            ConfigEntry=FakeConfigEntry,
         )
 
         cls._session_sentinel = object()
@@ -162,10 +253,21 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
         FakeApiClient.error = None
         FakeApiClient.instances = []
 
+    @staticmethod
+    def _schema_fields(
+        schema: FakeSchema,
+    ) -> dict[str, tuple[object, object]]:
+        """Return schema fields keyed by the user-facing field name."""
+        return {
+            key.key: (key.default, validator)
+            for key, validator in schema.schema.items()
+            if isinstance(key, FakeRequiredKey)
+        }
+
     async def _run_user_step(
         self,
         flow: FakeConfigFlow,
-        user_input: dict[str, str] | None = None,
+        user_input: dict[str, object] | None = None,
     ) -> dict[str, object]:
         """Run the user step and normalize fake abort handling."""
         try:
@@ -173,22 +275,26 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
         except AbortFlowResult as err:
             return err.result
 
+    async def _run_options_step(
+        self,
+        flow: FakeOptionsFlow,
+        user_input: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Run the options step."""
+        return await flow.async_step_init(user_input)
+
     async def test_show_form_without_input(self) -> None:
         """The initial user step should render the form schema."""
         flow = self.config_flow.EndgameGroceryConfigFlow()
 
         result = await self._run_user_step(flow)
+        schema_fields = self._schema_fields(result["data_schema"])
 
         self.assertEqual(result["type"], "form")
         self.assertEqual(result["step_id"], "user")
         self.assertEqual(result["errors"], {})
-        self.assertEqual(
-            result["data_schema"].schema,
-            {
-                "base_url": str,
-                "api_key": str,
-            },
-        )
+        self.assertEqual(set(schema_fields), {"base_url", "api_key", "scan_interval"})
+        self.assertEqual(schema_fields["scan_interval"][0], 60)
 
     async def test_success_creates_entry_using_first_list_name(self) -> None:
         """A valid connection should create an entry titled from the first list."""
@@ -197,14 +303,22 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         result = await self._run_user_step(
             flow,
-            {"base_url": "https://grocery.example.com/", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com/",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
 
         self.assertEqual(result["type"], "create_entry")
         self.assertEqual(result["title"], "Weekly Shopping")
         self.assertEqual(
             result["data"],
-            {"base_url": "https://grocery.example.com/", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com/",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
         self.assertEqual(flow._unique_id, "https://grocery.example.com")
         self.assertIs(FakeApiClient.instances[0].session, self._session_sentinel)
@@ -221,7 +335,11 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         result = await self._run_user_step(
             flow,
-            {"base_url": "https://grocery.example.com", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
 
         self.assertEqual(result["type"], "create_entry")
@@ -234,7 +352,11 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         result = await self._run_user_step(
             flow,
-            {"base_url": "https://grocery.example.com", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
 
         self.assertEqual(result["type"], "form")
@@ -247,7 +369,11 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         result = await self._run_user_step(
             flow,
-            {"base_url": "https://grocery.example.com", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
 
         self.assertEqual(result["type"], "form")
@@ -260,10 +386,48 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         result = await self._run_user_step(
             flow,
-            {"base_url": "https://grocery.example.com/", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com/",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
 
         self.assertEqual(result, {"type": "abort", "reason": "already_configured"})
+
+    async def test_scan_interval_below_range_maps_to_form_error(self) -> None:
+        """Scan intervals below the supported range should be rejected."""
+        flow = self.config_flow.EndgameGroceryConfigFlow()
+
+        result = await self._run_user_step(
+            flow,
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 9,
+            },
+        )
+
+        self.assertEqual(result["type"], "form")
+        self.assertEqual(result["errors"], {"base": "invalid_scan_interval"})
+        self.assertEqual(FakeApiClient.instances, [])
+
+    async def test_scan_interval_above_range_maps_to_form_error(self) -> None:
+        """Scan intervals above the supported range should be rejected."""
+        flow = self.config_flow.EndgameGroceryConfigFlow()
+
+        result = await self._run_user_step(
+            flow,
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 601,
+            },
+        )
+
+        self.assertEqual(result["type"], "form")
+        self.assertEqual(result["errors"], {"base": "invalid_scan_interval"})
+        self.assertEqual(FakeApiClient.instances, [])
 
     async def test_unexpected_error_maps_to_unknown(self) -> None:
         """Unexpected exceptions should show the generic unknown error."""
@@ -272,11 +436,64 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         result = await self._run_user_step(
             flow,
-            {"base_url": "https://grocery.example.com", "api_key": "secret-key"},
+            {
+                "base_url": "https://grocery.example.com",
+                "api_key": "secret-key",
+                "scan_interval": 60,
+            },
         )
 
         self.assertEqual(result["type"], "form")
         self.assertEqual(result["errors"], {"base": "unknown"})
+
+    async def test_options_flow_prefills_current_interval(self) -> None:
+        """The options form should show the current scan interval."""
+        entry = FakeConfigEntry(
+            data={"scan_interval": 30},
+            options={"scan_interval": 45},
+        )
+        flow = self.config_flow.EndgameGroceryConfigFlow.async_get_options_flow(entry)
+
+        result = await self._run_options_step(flow)
+        schema_fields = self._schema_fields(result["data_schema"])
+
+        self.assertEqual(result["type"], "form")
+        self.assertEqual(result["step_id"], "init")
+        self.assertEqual(result["errors"], {})
+        self.assertEqual(schema_fields["scan_interval"][0], 45)
+
+    async def test_options_flow_falls_back_to_entry_data_when_options_missing(self) -> None:
+        """The options form should use entry data when no override exists yet."""
+        entry = FakeConfigEntry(data={"scan_interval": 30})
+        flow = self.config_flow.EndgameGroceryConfigFlow.async_get_options_flow(entry)
+
+        result = await self._run_options_step(flow)
+        schema_fields = self._schema_fields(result["data_schema"])
+
+        self.assertEqual(result["type"], "form")
+        self.assertEqual(schema_fields["scan_interval"][0], 30)
+
+    async def test_options_flow_saves_scan_interval(self) -> None:
+        """The options flow should store the chosen scan interval in entry options."""
+        entry = FakeConfigEntry(data={"scan_interval": 30})
+        flow = self.config_flow.EndgameGroceryConfigFlow.async_get_options_flow(entry)
+
+        result = await self._run_options_step(flow, {"scan_interval": 120})
+
+        self.assertEqual(result["type"], "create_entry")
+        self.assertEqual(result["data"], {"scan_interval": 120})
+        self.assertEqual(entry.options, {"scan_interval": 120})
+
+    async def test_options_flow_rejects_out_of_range_interval(self) -> None:
+        """The options flow should return a localized error for invalid values."""
+        entry = FakeConfigEntry(data={"scan_interval": 30})
+        flow = self.config_flow.EndgameGroceryConfigFlow.async_get_options_flow(entry)
+
+        result = await self._run_options_step(flow, {"scan_interval": 601})
+
+        self.assertEqual(result["type"], "form")
+        self.assertEqual(result["step_id"], "init")
+        self.assertEqual(result["errors"], {"base": "invalid_scan_interval"})
 
     def test_strings_and_translation_files_match(self) -> None:
         """The English translation must match strings.json exactly."""
@@ -299,6 +516,10 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(strings, translation)
         self.assertEqual(strings["config"]["step"]["user"]["title"], "Connect to Endgame Grocery")
+        self.assertEqual(strings["config"]["error"]["invalid_scan_interval"], "Scan interval must be between 10 and 600 seconds.")
+        self.assertEqual(strings["options"]["step"]["init"]["title"], "Update Endgame Grocery options")
+        self.assertEqual(strings["options"]["step"]["init"]["data"]["scan_interval"], "Scan interval")
+        self.assertEqual(strings["options"]["error"]["invalid_scan_interval"], "Scan interval must be between 10 and 600 seconds.")
 
 
 if __name__ == "__main__":

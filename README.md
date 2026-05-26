@@ -21,7 +21,7 @@ Endgame Grocery connects an Endgame Grocery server to Home Assistant and exposes
 
 - One Home Assistant `todo` entity per Endgame Grocery list
 - Create, rename, describe, complete, reopen, and delete grocery items from Home Assistant
-- 60-second background refresh to keep Home Assistant in sync with the server
+- Configurable 10-600 second background refresh to keep Home Assistant in sync with the server
 - Config flow setup with live API credential validation
 - Works with the Lovelace Todo card and Home Assistant automations
 
@@ -63,7 +63,10 @@ Features: shared lists, dark Endgame theme, push notifications, offline support.
 2. Select `Add Integration` and search for `Endgame Grocery`.
 3. Enter the base URL for your server, for example `https://grocery.example.com`.
 4. Enter your API key.
-5. Submit the form. Home Assistant creates one `todo` entity for each grocery list.
+5. Optional: set the scan interval in seconds. The default is `60`, and allowed values are `10` to `600`.
+6. Submit the form. Home Assistant creates one `todo` entity for each grocery list.
+
+You can change the scan interval later from `Settings -> Devices & Services -> Endgame Grocery -> Configure`. Saving the new value reloads the integration so the updated interval takes effect immediately.
 
 ## Usage
 
