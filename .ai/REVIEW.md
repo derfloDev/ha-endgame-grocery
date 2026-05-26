@@ -96,3 +96,49 @@ None.
 
 #### Verdict
 `PASS`
+
+---
+
+## Task: T-002
+
+### Review Round 1
+
+Status: **PASS**
+
+Reviewed: 2026-05-26
+
+#### Findings
+
+| # | Severity | File / Line | Description | Required Fix |
+|---|----------|-------------|-------------|--------------|
+| — | — | — | No findings. Implementation matches the plan exactly. | — |
+
+#### Required Fixes
+None.
+
+#### Verification
+
+##### Steps
+1. `python -m py_compile custom_components/endgame_grocery/__init__.py` — syntax check
+2. `python -m unittest discover -s tests -p "test_*.py"` — full test suite
+3. Manual diff review of all changed files against `.ai/PLAN.md` T-002 spec
+
+##### Findings
+- `__init__.py`: `CONF_SCAN_INTERVAL` / `DEFAULT_SCAN_INTERVAL_SECONDS` imported; `timedelta` imported; `DEFAULT_SCAN_INTERVAL` constant (replaced by dynamic computation) correctly dropped from imports. ✅
+- `EndgameGroceryCoordinator.__init__`: resolves `raw_scan_interval` via `entry.options` → `entry.data` → `DEFAULT_SCAN_INTERVAL_SECONDS`, converts to `timedelta(seconds=int(...))` — matches plan exactly. ✅
+- `async_setup_entry`: registers `entry.add_update_listener(async_reload_entry)` after `entry.runtime_data = coordinator` and before platform forwarding. ✅
+- `async_reload_entry`: signature `(hass, entry) -> None`, calls `hass.config_entries.async_reload(entry.entry_id)`. ✅
+- `test_init.py`: `FakeConfigEntry` extended with `options` (default `{}`) and `update_listeners`; `add_update_listener` records listeners; `FakeConfigEntriesManager` extended with `reload_calls` / `async_reload`. New tests: listener registration (asserted in setup test), `async_reload_entry` helper, options override, data fallback, default fallback. Class docstring corrected T-004 → T-002. All 7 T-002 test cases present. ✅
+- `test_config_flow.py`: new `test_options_flow_falls_back_to_entry_data_when_options_missing` confirms options flow pre-fill fallback to entry.data. ✅
+- `README.md`: configuration note updated to say "Saving the new value reloads the integration so the updated interval takes effect immediately." ✅
+- Syntax check: `__init__.py` compiles clean.
+- Test suite: 54 tests total (5 new), all pass.
+
+##### Risks
+- Low. `async_reload_entry` triggers a full HA reload on every options save, which is intentional and documented. No side effects identified.
+
+#### Open Questions
+- None.
+
+#### Verdict
+`PASS`

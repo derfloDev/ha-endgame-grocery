@@ -34,6 +34,18 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 
 ---
 
+### T-002 — review — 2026-05-26T09:55:00Z
+
+| Field | Value |
+|-------|-------|
+| Agent | claude |
+| Summary | T-002 review passed first round: coordinator interval resolution, update listener registration, async_reload_entry helper, and all new tests are correct and complete |
+| Verdict | PASS |
+| Blocking Findings | none |
+| Next Role | implement |
+
+---
+
 ### T-001 — review (round 2) — 2026-05-26T08:50:00Z
 
 | Field | Value |
@@ -93,6 +105,32 @@ Each entry uses this exact structure. Omit fields marked as role-specific when t
 | Files Changed | `.ai/HANDOFF.md`, `.ai/PLAN.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `ROADMAP.md`, `custom_components/endgame_grocery/config_flow.py`, `custom_components/endgame_grocery/const.py`, `custom_components/endgame_grocery/strings.json`, `custom_components/endgame_grocery/translations/en.json`, `tests/test_config_flow.py` |
 | Validation | reused reviewer-approved validation recorded on T-001: `python -m py_compile custom_components/endgame_grocery/const.py` OK; `python -m py_compile custom_components/endgame_grocery/config_flow.py` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
 | Commit | `feat(config): add configurable scan interval to setup and options flow` |
+| Next Role | none |
+
+---
+
+### T-002 — implement — 2026-05-26T09:53:46Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Wired scan interval resolution into the update coordinator, registered automatic reload on options changes, expanded tests, and documented that saved interval changes apply immediately |
+| Files Changed | `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/__init__.py`, `tests/test_config_flow.py`, `tests/test_init.py` |
+| Validation | `python -m py_compile custom_components/endgame_grocery/__init__.py` OK; `python -m unittest tests.test_init` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(coordinator): wire scan interval from options/data into update coordinator` |
+| Next Role | review |
+
+---
+
+### T-002 — implement — 2026-05-26T10:09:37Z
+
+| Field | Value |
+|-------|-------|
+| Agent | codex |
+| Summary | Finalized T-002 after review approval, marked the task done, and created the task commit for coordinator scan interval wiring |
+| Files Changed | `.ai/HANDOFF.md`, `.ai/REVIEW.md`, `.ai/TASKS.md`, `README.md`, `custom_components/endgame_grocery/__init__.py`, `tests/test_config_flow.py`, `tests/test_init.py` |
+| Validation | reused reviewer-approved validation recorded on T-002: `python -m py_compile custom_components/endgame_grocery/__init__.py` OK; `python -m unittest tests.test_init` OK; `python -m unittest tests.test_config_flow` OK; `python -m unittest discover -s tests -p "test_*.py"` OK |
+| Commit | `feat(coordinator): wire scan interval from options/data into update coordinator` |
 | Next Role | none |
 
 ---

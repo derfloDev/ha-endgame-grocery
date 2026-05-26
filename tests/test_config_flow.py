@@ -462,6 +462,17 @@ class TestEndgameGroceryConfigFlow(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["errors"], {})
         self.assertEqual(schema_fields["scan_interval"][0], 45)
 
+    async def test_options_flow_falls_back_to_entry_data_when_options_missing(self) -> None:
+        """The options form should use entry data when no override exists yet."""
+        entry = FakeConfigEntry(data={"scan_interval": 30})
+        flow = self.config_flow.EndgameGroceryConfigFlow.async_get_options_flow(entry)
+
+        result = await self._run_options_step(flow)
+        schema_fields = self._schema_fields(result["data_schema"])
+
+        self.assertEqual(result["type"], "form")
+        self.assertEqual(schema_fields["scan_interval"][0], 30)
+
     async def test_options_flow_saves_scan_interval(self) -> None:
         """The options flow should store the chosen scan interval in entry options."""
         entry = FakeConfigEntry(data={"scan_interval": 30})

@@ -66,7 +66,7 @@ Features: shared lists, dark Endgame theme, push notifications, offline support.
 5. Optional: set the scan interval in seconds. The default is `60`, and allowed values are `10` to `600`.
 6. Submit the form. Home Assistant creates one `todo` entity for each grocery list.
 
-You can change the scan interval later from `Settings -> Devices & Services -> Endgame Grocery -> Configure`.
+You can change the scan interval later from `Settings -> Devices & Services -> Endgame Grocery -> Configure`. Saving the new value reloads the integration so the updated interval takes effect immediately.
 
 ## Usage
 
